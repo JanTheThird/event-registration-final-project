@@ -1,8 +1,8 @@
 import { useNavigate } from 'react-router-dom';
-import { AdminPage } from '../pages/admin/AdminPage';
+import { AdminPage } from './admin/AdminPage';
 import { StudentPage } from './student/StudentPage';
 
-function LoginPage() {
+function LandingPage() {
   const navigate = useNavigate();
 
   return (
@@ -13,4 +13,4 @@ function LoginPage() {
   );
 }
 
-export default LoginPage;
+export default LandingPage;
