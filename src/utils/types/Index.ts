@@ -16,7 +16,19 @@ export interface Event {
   createdAt: string;
 }
 
+export interface Notification {
+  id: number;
+  userId: number;
+  type: 'register' | 'unregister' | 'reminder_set';
+  eventId: number;
+  eventName: string;
+  action: string;
+  timestamp: string;
+  read: boolean;
+}
+
 export interface Database {
   users: User[];
   events: Event[];
 }
+
