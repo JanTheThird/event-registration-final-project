@@ -198,63 +198,43 @@ export default function AdminPage() {
   };
 
   return (
-    <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
-      <h1 style={{ color: '#333', marginBottom: '30px' }}>Admin Dashboard</h1>
+    <div>
+      <h1>Admin Dashboard</h1>
       
-      {/* User Management Tables - same as before */}
-      <div style={{ marginBottom: '40px' }}>
-        <h2 style={{ color: '#28a745', marginBottom: '20px' }}>
+      {/* User Management Tables */}
+      <div>
+        <h2>
           Active Users ({activeUsers.length})
         </h2>
-        {/* Active users table - unchanged */}
-        <div style={{ 
-          background: 'white', 
-          borderRadius: '12px', 
-          boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-          overflow: 'hidden',
-          marginBottom: '30px'
-        }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <div>
+          <table>
             <thead>
-              <tr style={{ background: '#d4edda' }}>
-                <th style={{ padding: '15px 12px', textAlign: 'left' }}>ID</th>
-                <th style={{ padding: '15px 12px', textAlign: 'left' }}>Email</th>
-                <th style={{ padding: '15px 12px', textAlign: 'left' }}>Role</th>
-                <th style={{ padding: '15px 12px', textAlign: 'left' }}>Status</th>
-                <th style={{ padding: '15px 12px', textAlign: 'left' }}>Action</th>
+              <tr>
+                <th>ID</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th>Action</th>
               </tr>
             </thead>
             <tbody>
               {activeUsers.map((user) => (
-                <tr key={user.id} style={{ borderBottom: '1px solid #eee' }}>
-                  <td style={{ padding: '12px' }}>{user.id}</td>
-                  <td style={{ padding: '12px' }}>{user.email}</td>
-                  <td style={{ padding: '12px' }}>
-                    <span style={{ 
-                      color: user.role === 'admin' ? '#fd7e14' : '#0d6efd',
-                      fontWeight: 'bold',
-                      fontSize: '14px'
-                    }}>
+                <tr key={user.id}>
+                  <td>{user.id}</td>
+                  <td>{user.email}</td>
+                  <td>
+                    <span>
                       {user.role.toUpperCase()}
                     </span>
                   </td>
-                  <td style={{ padding: '12px' }}>
-                    <span style={{ color: '#28a745', fontWeight: 'bold' }}>
+                  <td>
+                    <span>
                       ACTIVE
                     </span>
                   </td>
-                  <td style={{ padding: '12px' }}>
+                  <td>
                     <button 
                       onClick={() => handleToggleStatus(user.id)}
-                      style={{ 
-                        background: '#dc3545', 
-                        color: 'white', 
-                        border: 'none',
-                        padding: '8px 16px',
-                        borderRadius: '6px',
-                        cursor: 'pointer',
-                        fontSize: '14px'
-                      }}
                     >
                       Deactivate
                     </button>
@@ -265,74 +245,49 @@ export default function AdminPage() {
           </table>
         </div>
 
-        <h2 style={{ color: '#dc3545', marginBottom: '20px' }}>
+        <h2>
           Inactive Users ({inactiveUsers.length})
         </h2>
-        <div style={{ 
-          background: 'white', 
-          borderRadius: '12px', 
-          boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-          overflow: 'hidden'
-        }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <div>
+          <table>
             <thead>
-              <tr style={{ background: '#f8d7da' }}>
-                <th style={{ padding: '15px 12px', textAlign: 'left' }}>ID</th>
-                <th style={{ padding: '15px 12px', textAlign: 'left' }}>Email</th>
-                <th style={{ padding: '15px 12px', textAlign: 'left' }}>Role</th>
-                <th style={{ padding: '15px 12px', textAlign: 'left' }}>Status</th>
-                <th style={{ padding: '15px 12px', textAlign: 'left' }}>Actions</th>
-                <th style={{ padding: '15px 12px', textAlign: 'left' }}>Last Updated</th>
+              <tr>
+                <th>ID</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th>Actions</th>
+                <th>Last Updated</th>
               </tr>
             </thead>
             <tbody>
               {inactiveUsers.map((user) => (
-                <tr key={user.id} style={{ borderBottom: '1px solid #eee' }}>
-                  <td style={{ padding: '12px' }}>{user.id}</td>
-                  <td style={{ padding: '12px' }}>{user.email}</td>
-                  <td style={{ padding: '12px' }}>
-                    <span style={{ 
-                      color: user.role === 'admin' ? '#fd7e14' : '#0d6efd',
-                      fontWeight: 'bold'
-                    }}>
+                <tr key={user.id}>
+                  <td>{user.id}</td>
+                  <td>{user.email}</td>
+                  <td>
+                    <span>
                       {user.role.toUpperCase()}
                     </span>
                   </td>
-                  <td style={{ padding: '12px' }}>
-                    <span style={{ color: '#dc3545', fontWeight: 'bold' }}>
+                  <td>
+                    <span>
                       INACTIVE
                     </span>
                   </td>
-                  <td style={{ padding: '12px' }}>
+                  <td>
                     <button 
                       onClick={() => handleToggleStatus(user.id)}
-                      style={{ 
-                        background: '#28a745', 
-                        color: 'white', 
-                        border: 'none',
-                        padding: '8px 12px',
-                        marginRight: '8px',
-                        borderRadius: '6px',
-                        cursor: 'pointer'
-                      }}
                     >
                       Re-activate
                     </button>
                     <button 
                       onClick={() => handleDeleteUser(user.id)}
-                      style={{ 
-                        background: '#6c757d', 
-                        color: 'white', 
-                        border: 'none',
-                        padding: '8px 12px',
-                        borderRadius: '6px',
-                        cursor: 'pointer'
-                      }}
                     >
                       Delete
                     </button>
                   </td>
-                  <td style={{ padding: '12px', fontSize: '14px', color: '#666' }}>
+                  <td>
                     {user.lastUpdated}
                   </td>
                 </tr>
@@ -344,122 +299,54 @@ export default function AdminPage() {
 
       {/* Events */}
       <section>
-        <h2 style={{ color: '#0d6efd', marginBottom: '20px' }}>Events Management ({events.length})</h2>
-        <div style={{ display: 'grid', gap: '25px' }}>
+        <h2>Events Management ({events.length})</h2>
+        <div>
           {events.map((event) => {
             const editingEvent = getEditingEvent(event.id);
             const isEditing = editingEvent?.editing;
             const eventStatus = getEventStatus(event);
 
             return (
-              <div key={event.id} style={{
-                padding: '25px',
-                border: `3px solid ${isEditing ? '#0d6efd' : eventStatus === 'past' ? '#dc3545' : '#28a745'}`,
-                borderRadius: '16px',
-                background: isEditing 
-                  ? '#e3f2fd' 
-                  : eventStatus === 'past' 
-                    ? '#fdf2f2' 
-                    : '#f0fdf4',
-                boxShadow: '0 4px 20px rgba(0,0,0,0.1)'
-              }}>
+              <div key={event.id}>
                 {/* Event Header */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                <div>
                   <div>
-                    <h3 style={{ 
-                      margin: 0, 
-                      fontSize: isEditing ? '24px' : '28px', 
-                      color: isEditing ? '#0d6efd' : '#333',
-                      fontWeight: isEditing ? '600' : '700'
-                    }}>
+                    <h3>
                       {isEditing ? 'Editing: ' : ''}{event.name}
                     </h3>
                     {!isEditing && (
-                      <div style={{ margin: '8px 0 0 0' }}>
-                        <span style={{ 
-                          padding: '6px 12px',
-                          background: eventStatus === 'past' ? '#fee2e2' : '#dcfce7',
-                          color: eventStatus === 'past' ? '#dc2626' : '#166534',
-                          borderRadius: '20px',
-                          fontSize: '14px',
-                          fontWeight: '600'
-                        }}>
-                          {eventStatus === 'past' ? '📅 Past Event' : '📅 Upcoming'}
+                      <div>
+                        <span>
+                          {eventStatus === 'past' ? 'Past Event' : 'Upcoming'}
                         </span>
-                        <span style={{ 
-                          marginLeft: '10px',
-                          padding: '6px 12px',
-                          background: '#e0e7ff',
-                          color: '#1e40af',
-                          borderRadius: '20px',
-                          fontSize: '14px'
-                        }}>
+                        <span>
                           {event.quota} spots
                         </span>
                       </div>
                     )}
                   </div>
-                  <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                  <div>
                     {!isEditing ? (
                       <>
                         <button 
                           onClick={() => showEventAnalytics(event)}
-                          style={{
-                            padding: '10px 20px',
-                            background: '#8b5cf6',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '8px',
-                            cursor: 'pointer',
-                            fontWeight: '500',
-                            fontSize: '14px'
-                          }}
                         >
-                          📊 Analytics
+                          Analytics
                         </button>
                         <button 
                           onClick={() => startEdit(event)}
-                          style={{
-                            padding: '10px 20px',
-                            background: '#0d6efd',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '8px',
-                            cursor: 'pointer',
-                            fontWeight: '500',
-                            fontSize: '14px'
-                          }}
                         >
-                          ✏️ Edit
+                          Edit
                         </button>
                         <button 
                           onClick={() => handleDeleteEvent(event.id)}
-                          style={{
-                            padding: '10px 20px',
-                            background: '#dc3545',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '8px',
-                            cursor: 'pointer',
-                            fontWeight: '500',
-                            fontSize: '14px'
-                          }}
                         >
-                          🗑️ Delete
+                          Delete
                         </button>
                       </>
                     ) : (
                       <button 
                         onClick={() => cancelEdit(event.id)}
-                        style={{
-                          padding: '10px 20px',
-                          background: '#6c757d',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '8px',
-                          cursor: 'pointer',
-                          fontWeight: '500'
-                        }}
                       >
                         Cancel
                       </button>
@@ -469,24 +356,18 @@ export default function AdminPage() {
 
                 {/* Event Preview (non-editing) */}
                 {!isEditing && (
-                  <div style={{ 
-                    display: 'grid', 
-                    gridTemplateColumns: '1fr 1fr', 
-                    gap: '20px', 
-                    marginBottom: '20px',
-                    padding: '20px',
-                    background: 'rgba(255,255,255,0.7)',
-                    borderRadius: '12px'
-                  }}>
+                  <div>
                     <div>
-                      <div style={{ fontWeight: '600', color: '#666', marginBottom: '8px' }}>📍 Location</div>
-                      <div style={{ fontSize: '18px', color: '#333' }}>{event.location}</div>
+                      Location
                     </div>
                     <div>
-                      <div style={{ fontWeight: '600', color: '#666', marginBottom: '8px' }}>📝 Description</div>
-                      <div style={{ fontSize: '16px', color: '#555', lineHeight: '1.5' }}>
-                        {event.description}
-                      </div>
+                      {event.location}
+                    </div>
+                    <div>
+                      Description
+                    </div>
+                    <div>
+                      {event.description}
                     </div>
                   </div>
                 )}
@@ -496,45 +377,30 @@ export default function AdminPage() {
                   <form onSubmit={(e) => {
                     e.preventDefault();
                     handleSubmitEvent(event.id);
-                  }} style={{ display: 'grid', gap: '20px' }}>
-                    {/* Form fields - same as before */}
+                  }}>
                     <div>
-                      <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#333' }}>
+                      <label>
                         Event Name *
                       </label>
                       <input 
                         value={editingEvent.formData.name}
                         onChange={(e) => updateFormData(event.id, 'name', e.target.value)}
-                        style={{ 
-                          width: '100%', 
-                          padding: '14px', 
-                          borderRadius: '8px', 
-                          border: '2px solid #e0e0e0',
-                          fontSize: '16px'
-                        }}
                       />
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                    <div>
                       <div>
-                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#333' }}>
+                        <label>
                           Date *
                         </label>
                         <input 
                           type="date"
                           value={editingEvent.formData.date}
                           onChange={(e) => updateFormData(event.id, 'date', e.target.value)}
-                          style={{ 
-                            width: '100%', 
-                            padding: '14px', 
-                            borderRadius: '8px', 
-                            border: '2px solid #e0e0e0',
-                            fontSize: '16px'
-                          }}
                         />
                       </div>
                       <div>
-                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#333' }}>
+                        <label>
                           Quota *
                         </label>
                         <input 
@@ -542,83 +408,42 @@ export default function AdminPage() {
                           min="0"
                           value={editingEvent.formData.quota}
                           onChange={(e) => updateFormData(event.id, 'quota', parseInt(e.target.value) || 0)}
-                          style={{ 
-                            width: '100%', 
-                            padding: '14px', 
-                            borderRadius: '8px', 
-                            border: '2px solid #e0e0e0',
-                            fontSize: '16px'
-                          }}
                         />
                       </div>
                     </div>
 
                     <div>
-                      <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#333' }}>
+                      <label>
                         Location *
                       </label>
                       <input 
                         value={editingEvent.formData.location}
                         onChange={(e) => updateFormData(event.id, 'location', e.target.value)}
-                        style={{ 
-                          width: '100%', 
-                          padding: '14px', 
-                          borderRadius: '8px', 
-                          border: '2px solid #e0e0e0',
-                          fontSize: '16px'
-                        }}
                       />
                     </div>
 
                     <div>
-                      <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#333' }}>
+                      <label>
                         Description *
                       </label>
                       <textarea 
                         value={editingEvent.formData.description}
                         onChange={(e) => updateFormData(event.id, 'description', e.target.value)}
                         rows={4}
-                        style={{ 
-                          width: '100%', 
-                          padding: '14px', 
-                          borderRadius: '8px', 
-                          border: '2px solid #e0e0e0',
-                          fontSize: '16px',
-                          resize: 'vertical'
-                        }}
                       />
                     </div>
 
-                    <div style={{ display: 'flex', gap: '15px', justifyContent: 'flex-end' }}>
+                    <div>
                       <button 
                         type="button"
                         onClick={() => cancelEdit(event.id)}
-                        style={{
-                          padding: '14px 28px',
-                          background: '#6c757d',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '8px',
-                          cursor: 'pointer',
-                          fontSize: '16px'
-                        }}
                       >
                         Cancel
                       </button>
                       <button 
                         type="submit"
-                        style={{
-                          padding: '14px 28px',
-                          background: '#28a745',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '8px',
-                          cursor: 'pointer',
-                          fontSize: '16px',
-                          fontWeight: '600'
-                        }}
                       >
-                        💾 Save Changes
+                        Save Changes
                       </button>
                     </div>
                   </form>
@@ -631,140 +456,56 @@ export default function AdminPage() {
 
       {/* Analytics Modal */}
       {showAnalytics && analytics && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(0,0,0,0.5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000,
-          padding: '20px'
-        }}>
-          <div style={{
-            background: 'white',
-            borderRadius: '20px',
-            maxWidth: '600px',
-            width: '100%',
-            maxHeight: '90vh',
-            overflowY: 'auto',
-            boxShadow: '0 20px 60px rgba(0,0,0,0.3)'
-          }}>
-            <div style={{
-              padding: '30px',
-              borderBottom: '1px solid #eee',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center'
-            }}>
-              <h2 style={{ margin: 0, color: '#333', fontSize: '28px' }}>
-                📊 {showAnalytics.name} Analytics
+        <div>
+          <div>
+            <div>
+              <h2>
+                {showAnalytics.name} Analytics
               </h2>
               <button
                 onClick={() => setShowAnalytics(null)}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  fontSize: '24px',
-                  cursor: 'pointer',
-                  color: '#666',
-                  padding: '0',
-                  width: '40px',
-                  height: '40px',
-                  borderRadius: '50%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  transition: 'all 0.2s'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = '#f3f4f6';
-                  e.currentTarget.style.color = '#333';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'transparent';
-                  e.currentTarget.style.color = '#666';
-                }}
               >
                 ×
               </button>
             </div>
 
-            <div style={{ padding: '30px' }}>
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                gap: '20px',
-                marginBottom: '30px'
-              }}>
-                <div style={{
-                  padding: '20px',
-                  background: analytics.status === 'success' ? '#dcfce7' : 
-                             analytics.status === 'failed' ? '#fee2e2' : '#fef3c7',
-                  borderRadius: '12px',
-                  textAlign: 'center',
-                  border: `3px solid ${
-                    analytics.status === 'success' ? '#22c55e' :
-                    analytics.status === 'failed' ? '#ef4444' : '#eab308'
-                  }`
-                }}>
-                  <div style={{ fontSize: '48px', fontWeight: 'bold', color: '#333' }}>
-                    {analytics.status === 'success' ? '✅' :
-                     analytics.status === 'failed' ? '❌' : '⏳'}
+            <div>
+              <div>
+                <div>
+                  <div>
+                    {analytics.status === 'success' ? 'Yes' :
+                     analytics.status === 'failed' ? 'No' : 'Pending'}
                   </div>
-                  <div style={{ fontSize: '16px', color: '#666', marginTop: '8px' }}>
+                  <div>
                     {analytics.status === 'upcoming' ? 'Upcoming' :
                      analytics.isSuccess ? 'SUCCESS' : 'FAILED'}
                   </div>
                 </div>
 
-                <div style={{
-                  padding: '20px',
-                  background: 'rgba(59, 130, 246, 0.1)',
-                  borderRadius: '12px',
-                  border: '2px solid #3b82f6'
-                }}>
-                  <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#3b82f6' }}>
+                <div>
+                  <div>
                     {analytics.totalRegistered}
                   </div>
-                  <div style={{ fontSize: '14px', color: '#666' }}>Total Registered</div>
+                  <div>Total Registered</div>
                 </div>
 
-                <div style={{
-                  padding: '20px',
-                  background: 'rgba(219, 234, 254, 0.5)',
-                  borderRadius: '12px',
-                  border: '2px solid #3b82f6'
-                }}>
-                  <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#1e40af' }}>
+                <div>
+                  <div>
                     {analytics.quota}
                   </div>
-                  <div style={{ fontSize: '14px', color: '#666' }}>Quota Needed</div>
+                  <div>Quota Needed</div>
                 </div>
               </div>
 
-              <div style={{
-                padding: '20px',
-                background: '#f8fafc',
-                borderRadius: '12px',
-                borderLeft: '4px solid #3b82f6'
-              }}>
-                <h4 style={{ margin: '0 0 10px 0', color: '#1e40af' }}>Event Details:</h4>
+              <div>
+                <h4>Event Details:</h4>
                 <p><strong>Date:</strong> {showAnalytics.date}</p>
                 <p><strong>Location:</strong> {showAnalytics.location}</p>
                 {analytics.status !== 'upcoming' && (
-                  <p style={{ 
-                    fontSize: '16px', 
-                    fontWeight: '500',
-                    color: analytics.isSuccess ? '#22c55e' : '#ef4444',
-                    marginTop: '15px'
-                  }}>
+                  <p>
                     {analytics.isSuccess 
-                      ? `🎉 SUCCESS! Quota (${analytics.quota}) was met with ${analytics.totalRegistered} registrations!`
-                      : `😞 FAILED. Only ${analytics.totalRegistered} registered out of ${analytics.quota} quota needed.`
+                      ? `SUCCESS! Quota (${analytics.quota}) was met with ${analytics.totalRegistered} registrations!`
+                      : `FAILED. Only ${analytics.totalRegistered} registered out of ${analytics.quota} quota needed.`
                     }
                   </p>
                 )}

@@ -1,12 +1,11 @@
-// pages/student/StudentPage.tsx
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom'; // Changed from next/router
+import { useNavigate } from 'react-router-dom';
 import { useDB } from '../../utils/localdb/db';
 import type { Event } from '../../utils/types/Index';
 
 export default function StudentPage() {
   const db = useDB();
-  const navigate = useNavigate(); // Hook for navigation
+  const navigate = useNavigate();
   const [allUpcomingEvents, setAllUpcomingEvents] = useState<Event[]>([]);
   const [registeredEvents, setRegisteredEvents] = useState<Event[]>([]);
   const [today] = useState(new Date().toISOString().split('T')[0]);
@@ -15,7 +14,6 @@ export default function StudentPage() {
 
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Sync unread notifications count from localStorage
   const refreshUnreadCount = useCallback(() => {
     const raw = localStorage.getItem('demoNotifications');
     const notifications = raw ? JSON.parse(raw) : [];
@@ -80,14 +78,14 @@ export default function StudentPage() {
     const notifs = JSON.parse(localStorage.getItem('demoNotifications') || '[]');
     notifs.push({
       id: Date.now(),
-      action: registering ? `✅ Registered: ${event.name}` : `❌ Unregistered: ${event.name}`,
+      action: registering ? `Registered: ${event.name}` : `Unregistered: ${event.name}`,
       type: registering ? 'register' : 'unregister',
       read: false,
       timestamp: new Date().toISOString()
     });
     localStorage.setItem('demoNotifications', JSON.stringify(notifs));
     
-    alert(registering ? `🎉 Registered for "${event.name}"!` : `✅ Unregistered from "${event.name}"`);
+    alert(registering ? `Registered for "${event.name}"!` : `Unregistered from "${event.name}"`);
     refreshUnreadCount();
   };
 
@@ -95,52 +93,44 @@ export default function StudentPage() {
     const notifs = JSON.parse(localStorage.getItem('demoNotifications') || '[]');
     notifs.push({
       id: Date.now(),
-      action: `⏰ Reminder set: ${event.name} (${days}d before)`,
+      action: `Reminder set: ${event.name} (${days}d before)`,
       type: 'reminder_set',
       read: false,
       timestamp: new Date().toISOString()
     });
     localStorage.setItem('demoNotifications', JSON.stringify(notifs));
     
-    alert(`⏰ Reminder scheduled for "${event.name}"!`);
+    alert(`Reminder scheduled for "${event.name}"!`);
     setOpenNotificationDropdown(null);
     refreshUnreadCount();
   };
 
   return (
-    <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto', fontFamily: 'sans-serif' }}>
-      {/* Floating Notification Badge */}
-      <div 
-        onClick={() => navigate('/notifications')}
-        style={{
-          position: 'fixed', top: '20px', right: '20px', cursor: 'pointer',
-          background: '#007bff', color: 'white', padding: '10px 20px', borderRadius: '30px',
-          fontWeight: 'bold', boxShadow: '0 4px 10px rgba(0,0,0,0.2)', zIndex: 1000
-        }}
-      >
-        🔔 Notifications {unreadCount > 0 && <span style={{ background: 'red', borderRadius: '50%', padding: '2px 8px', marginLeft: '5px' }}>{unreadCount}</span>}
+    <div className="student-container">
+      <div onClick={() => navigate('/notifications')} className="notif-badge-float">
+        Notifications {unreadCount > 0 && <span className="unread-dot">{unreadCount}</span>}
       </div>
 
       <h1>Student Dashboard</h1>
 
       <section>
         <h2>My Registered Events</h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
+        <div className="events-grid">
           {registeredEvents.map(event => {
             const daysUntil = getDaysUntil(event.date);
             const isOpen = openNotificationDropdown === event.id;
             return (
-              <div key={event.id} style={{ border: '1px solid #ddd', padding: '20px', borderRadius: '12px', background: '#f8f9fa' }}>
+              <div key={event.id} className="card-base card-registered" style={{ borderColor: daysUntil <= 3 ? '#ff4d4f' : '#1890ff' }}>
                 <h3>{event.name}</h3>
-                <p>📅 {event.date} ({daysUntil} days left)</p>
-                <div style={{ display: 'flex', gap: '10px' }}>
-                  <button onClick={() => toggleRegistration(event)} style={{ background: '#dc3545', color: 'white', border: 'none', padding: '10px', borderRadius: '8px', cursor: 'pointer' }}>Unregister</button>
-                  <div style={{ position: 'relative' }} ref={isOpen ? dropdownRef : null}>
-                    <button onClick={() => setOpenNotificationDropdown(isOpen ? null : event.id)} style={{ background: '#f59e0b', color: 'white', border: 'none', padding: '10px', borderRadius: '8px', cursor: 'pointer' }}>⏰ Notify Later</button>
+                <p>{event.date} ({daysUntil} days left)</p>
+                <div className="btn-flex-row">
+                  <button onClick={() => toggleRegistration(event)} className="btn-unregister">Unregister</button>
+                  <div className="relative-wrapper"  ref={isOpen ? dropdownRef : null}>
+                    <button onClick={() => setOpenNotificationDropdown(isOpen ? null : event.id)} className="btn-notify">Notify Later</button>
                     {isOpen && (
-                      <div style={{ position: 'absolute', top: '100%', background: 'white', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', borderRadius: '8px', zIndex: 10, width: '150px' }}>
-                        <div onClick={() => handleNotifyLater(event, 1)} style={{ padding: '10px', cursor: 'pointer', borderBottom: '1px solid #eee' }}>1 Day Before</div>
-                        <div onClick={() => handleNotifyLater(event, 7)} style={{ padding: '10px', cursor: 'pointer' }}>1 Week Before</div>
+                      <div className="custom-dropdown-menu">
+                        <div onClick={() => handleNotifyLater(event, 1)} className="dropdown-action-item">1 Day Before</div>
+                        <div onClick={() => handleNotifyLater(event, 7)} className="dropdown-action-item">1 Week Before</div>
                       </div>
                     )}
                   </div>
@@ -153,12 +143,12 @@ export default function StudentPage() {
 
       <section style={{ marginTop: '40px' }}>
         <h2>Available Events</h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
+        <div className="events-grid">
           {allUpcomingEvents.filter(e => !isRegistered(e.id)).map(event => (
-            <div key={event.id} style={{ border: '1px solid #eee', padding: '20px', borderRadius: '12px' }}>
+            <div key={event.id} className="card-base card-available">
               <h3>{event.name}</h3>
-              <p>📅 {event.date}</p>
-              <button onClick={() => toggleRegistration(event)} style={{ background: '#28a745', color: 'white', border: 'none', width: '100%', padding: '12px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>Register</button>
+              <p>{event.date}</p>
+              <button onClick={() => toggleRegistration(event)} className="btn-register-main">Register</button>
             </div>
           ))}
         </div>
