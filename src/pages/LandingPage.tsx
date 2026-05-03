@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { AdminPage } from './admin/AdminPage';
+import  AdminPage  from './admin/AdminPage';
 import { StudentPage } from './student/StudentPage';
 
 function LandingPage() {
