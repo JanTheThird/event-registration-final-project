@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import { useDB } from '../../utils/localdb/db';
 import type { Notification } from '../../utils/types/Index';
 
+import NotificationHeader from '../student/components/notification/NotificationHeader';
+import NotificationList from '../student/components/notification/NotificationList';
+
 export default function NotificationLogPage() {
   const db = useDB();
-  const navigate = useNavigate();
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
   useEffect(() => {
@@ -27,35 +28,17 @@ export default function NotificationLogPage() {
   };
 
   return (
-    <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto', fontFamily: 'sans-serif' }}>
-      <button onClick={() => navigate('/student')} style={{ marginBottom: '20px', cursor: 'pointer' }}>
-        ← Back to Dashboard
-      </button>
+    <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
       
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h1>Notification Log</h1>
-        <div>
-          <button onClick={markAllRead} style={{ marginRight: '10px' }}>Mark all read</button>
-          <button onClick={clearAll} style={{ color: 'red' }}>Clear All</button>
-        </div>
-      </div>
+      <NotificationHeader
+        onMarkAllRead={markAllRead}
+        onClearAll={clearAll}
+      />
 
       <div style={{ marginTop: '20px' }}>
-        {notifications.length === 0 ? (
-          <p>No notifications yet.</p>
-        ) : (
-          notifications.map(n => (
-            <div key={n.id} style={{ 
-              padding: '15px', borderBottom: '1px solid #eee', 
-              background: n.read ? 'transparent' : '#f0f7ff',
-              borderRadius: '8px', marginBottom: '10px'
-            }}>
-              <strong>{n.action}</strong>
-              <div style={{ fontSize: '12px', color: '#666' }}>{new Date(n.timestamp).toLocaleString()}</div>
-            </div>
-          ))
-        )}
+        <NotificationList notifications={notifications} />
       </div>
+
     </div>
   );
 }
