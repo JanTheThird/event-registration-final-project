@@ -3,10 +3,12 @@ import LandingPage from './pages/LandingPage';
 import AdminPage from './pages/admin/AdminPage';
 import StudentPage from './pages/student/StudentPage';
 import NotificationLogPage from './pages/student/NotificationLogPage';
+import { AuthProvider } from './utils/context/AuthContext';
 
 function App() {
   return (
-    <Router>
+    <AuthProvider>
+      <Router>
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/admin" element={<AdminPage />} />
@@ -14,6 +16,8 @@ function App() {
         <Route path="/notifications" element={<NotificationLogPage />} />
       </Routes>
     </Router>
+    </AuthProvider>
+    
   );
 }
 

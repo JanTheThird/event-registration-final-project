@@ -5,7 +5,7 @@ import { useDB } from '../utils/localdb/db';
 function LandingPage() {
   const navigate = useNavigate();
   const db = useDB();
-  const allUsers = db.getAllUsers();
+  const allUsers = db.getAllUsers(); // Get Ana, Jack, etc. from your JSON/LocalStorage
 
   const [selectedUserId, setSelectedUserId] = useState<string>('');
 

@@ -1,167 +1,201 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import { useDB } from '../../utils/localdb/db';
 import type { Event } from '../../utils/types/Index';
 
+import NotificationBadge from '../student/components/student/NotificationBadge';
+import RegisteredEventCard from '../student/components/student/RegisteredEventCard';
+import AvailableEventCard from '../student/components/student/AvailableEventCard';
+import EventsSection from '../student/components/student/EventsSection';
+import { useAuth } from '../../utils/context/AuthContext';
+
 export default function StudentPage() {
   const db = useDB();
-  const navigate = useNavigate();
-  const [allUpcomingEvents, setAllUpcomingEvents] = useState<Event[]>([]);
-  const [registeredEvents, setRegisteredEvents] = useState<Event[]>([]);
-  const [today] = useState(new Date().toISOString().split('T')[0]);
-  const [openNotificationDropdown, setOpenNotificationDropdown] = useState<number | null>(null);
-  const [unreadCount, setUnreadCount] = useState(0);
+  const { userId, logout } = useAuth();
 
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [unread, setUnread] = useState(0);
+  const [openDropdown, setOpenDropdown] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  
+  const today = new Date().toISOString().split('T')[0];
 
-  const refreshUnreadCount = useCallback(() => {
-    const raw = localStorage.getItem('demoNotifications');
-    const notifications = raw ? JSON.parse(raw) : [];
-    const unread = notifications.filter((n: any) => !n.read).length;
-    setUnreadCount(unread);
-  }, []);
-
-  useEffect(() => {
-    refreshEvents();
-    refreshUnreadCount();
-    const interval = setInterval(refreshUnreadCount, 5000);
-    return () => clearInterval(interval);
-  }, [today, refreshUnreadCount]);
-
-  const handleClickOutside = useCallback((event: MouseEvent) => {
-    if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-      setOpenNotificationDropdown(null);
-    }
-  }, []);
-
-  useEffect(() => {
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [handleClickOutside]);
-
-  const refreshEvents = () => {
-    const events = db.getEvents();
-    const future = events.filter(event => event.date >= today);
-    setAllUpcomingEvents(future);
-    
-    const saved = localStorage.getItem('demoRegisteredEvents');
-    if (saved) {
-      const parsedIds: number[] = JSON.parse(saved);
-      setRegisteredEvents(future.filter(e => parsedIds.includes(e.id)));
-    } else {
-      setRegisteredEvents(future.slice(0, 2));
-    }
+  // ---------------------------
+  // HELPER: Convert userId safely
+  // ---------------------------
+  const getUserIdNum = (): number | null => {
+    if (!userId) return null;
+    return parseInt(userId);
   };
 
-  const getDaysUntil = (date: string): number => {
-    const eventDate = new Date(date + 'T00:00:00');
+  // ---------------------------
+  // DERIVED DATA (NO STATE)
+  // ---------------------------
+  const events: Event[] = db.getEvents().filter(e => e.date >= today);
+
+  const userIdNum = getUserIdNum();
+  const registeredIds = userIdNum
+    ? db.getUserRegistrations(userIdNum) // ✅ Now passes number
+    : [];
+
+  const registeredEvents = events.filter(e =>
+    registeredIds.includes(e.id)
+  );
+
+  const availableEvents = events.filter(e =>
+    !registeredIds.includes(e.id)
+  );
+
+  // ---------------------------
+  // EFFECTS
+  // ---------------------------
+  useEffect(() => {
+    refreshUnread();
+  }, [userId]);
+
+  useEffect(() => {
+    if (!userId) {
+      setLoading(false);
+      return;
+    }
+    setLoading(false);
+  }, [userId]);
+
+  useEffect(() => {
+    if (userIdNum) {
+      refreshUnread();
+    }
+  }, [events.length, userId]);
+
+  // ---------------------------
+  // FIXED: refreshUnread
+  // ---------------------------
+  const refreshUnread = () => {
+    if (!userIdNum) {
+      setUnread(0);
+      return;
+    }
+    
+    const notifs = db.getNotifications().filter(n => n.userId === userIdNum); // ✅ Fixed!
+    setUnread(notifs.filter(n => !n.read).length);
+  };
+
+  // ---------------------------
+  // HELPERS
+  // ---------------------------
+  const getDaysUntil = (date: string) => {
+    const d = new Date(date + 'T00:00:00');
     const now = new Date();
     now.setHours(0, 0, 0, 0);
-    return Math.ceil((eventDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    return Math.ceil((d.getTime() - now.getTime()) / 86400000);
   };
 
-  const isRegistered = (eventId: number) => registeredEvents.some(e => e.id === eventId);
+  const isRegistered = (eventId: number) =>
+    registeredIds.includes(eventId);
 
- const toggleRegistration = (event: Event) => {
-  const registering = !isRegistered(event.id);
-  const currentUserId = 1;
+  // ---------------------------
+  // ACTIONS - ALL FIXED!
+  // ---------------------------
+  const toggleRegistration = (event: Event) => {
+    if (!userIdNum) {
+      alert('Please log in first!');
+      return;
+    }
 
-    if (registering) {
-    db.registerForEvent(currentUserId, event.id); // Update DB
-  } else {
-    db.unregisterFromEvent(currentUserId, event.id); // Update DB
-  }
-  let updated;
-  if (registering) {
-    updated = [...registeredEvents, event];
-  } else {
-    updated = registeredEvents.filter(e => e.id !== event.id);
-  }
-  
+    const exists = isRegistered(event.id);
 
-    setRegisteredEvents(updated);
-    localStorage.setItem('demoRegisteredEvents', JSON.stringify(updated.map(e => e.id)));
+    if (exists) {
+      db.unregisterFromEvent(userIdNum, event.id); // ✅ Number
+    } else {
+      db.registerForEvent(userIdNum, event.id); // ✅ Number
+    }
 
-    const notifs = JSON.parse(localStorage.getItem('demoNotifications') || '[]');
-    notifs.push({
-      id: Date.now(),
-      action: registering ? `Registered: ${event.name}` : `Unregistered: ${event.name}`,
-      type: registering ? 'register' : 'unregister',
-      read: false,
-      timestamp: new Date().toISOString()
+    db.addNotification({
+      userId: userIdNum, // ✅ Number
+      eventId: event.id,
+      eventName: event.name,
+      type: exists ? 'unregister' : 'register',
+      action: exists
+        ? `Unregistered: ${event.name}`
+        : `Registered: ${event.name}`
     });
-    localStorage.setItem('demoNotifications', JSON.stringify(notifs));
-    
-    alert(registering ? `Registered for "${event.name}"!` : `Unregistered from "${event.name}"`);
-    refreshUnreadCount();
+
+    refreshUnread();
   };
 
-  const handleNotifyLater = (event: Event, days: number) => {
-    const notifs = JSON.parse(localStorage.getItem('demoNotifications') || '[]');
-    notifs.push({
-      id: Date.now(),
-      action: `Reminder set: ${event.name} (${days}d before)`,
+  const notifyLater = (event: Event, days: number) => {
+    if (!userIdNum) {
+      alert('Please log in first!');
+      return;
+    }
+
+    db.addNotification({
+      userId: userIdNum, // ✅ Number
+      eventId: event.id,
+      eventName: event.name,
       type: 'reminder_set',
-      read: false,
-      timestamp: new Date().toISOString()
+      action: `Reminder set: ${event.name} (${days}d before)`
     });
-    localStorage.setItem('demoNotifications', JSON.stringify(notifs));
-    
-    alert(`Reminder scheduled for "${event.name}"!`);
-    setOpenNotificationDropdown(null);
-    refreshUnreadCount();
+
+    setOpenDropdown(null);
+    refreshUnread();
   };
+
+  // ---------------------------
+  // RENDER
+  // ---------------------------
+  if (loading) {
+    return <div className="student-container">Loading...</div>;
+  }
+
+  if (!userIdNum) {
+    return (
+      <div className="student-container">
+        <h1>Please log in</h1>
+        <button onClick={() => window.location.href = '/'}>Go to Login</button>
+      </div>
+    );
+  }
 
   return (
     <div className="student-container">
-      <div onClick={() => navigate('/notifications')} className="notif-badge-float">
-        Notifications {unreadCount > 0 && <span className="unread-dot">{unreadCount}</span>}
+      <div className="page-header">
+        <NotificationBadge unread={unread} />
+        <h1>Student Dashboard</h1>
+        <button onClick={logout} className="logout-btn">Logout</button>
       </div>
 
-      <h1>Student Dashboard</h1>
+      <EventsSection title="My Registered Events">
+        {registeredEvents.length === 0 ? (
+          <p>No registered events</p>
+        ) : (
+          registeredEvents.map(event => (
+            <RegisteredEventCard
+              key={event.id}
+              event={event}
+              daysUntil={getDaysUntil(event.date)}
+              isDropdownOpen={openDropdown === event.id}
+              onToggleDropdown={() =>
+                setOpenDropdown(openDropdown === event.id ? null : event.id)
+              }
+              onUnregister={() => toggleRegistration(event)}
+              onNotify={(d) => notifyLater(event, d)}
+            />
+          ))
+        )}
+      </EventsSection>
 
-      <section>
-        <h2>My Registered Events</h2>
-        <div className="events-grid">
-          {registeredEvents.map(event => {
-            const daysUntil = getDaysUntil(event.date);
-            const isOpen = openNotificationDropdown === event.id;
-            return (
-              <div key={event.id} className="card-base card-registered" style={{ borderColor: daysUntil <= 3 ? '#ff4d4f' : '#1890ff' }}>
-                <h3>{event.name}</h3>
-                <p>{event.date} ({daysUntil} days left)</p>
-                <div className="btn-flex-row">
-                  <button onClick={() => toggleRegistration(event)} className="btn-unregister">Unregister</button>
-                  <div className="relative-wrapper"  ref={isOpen ? dropdownRef : null}>
-                    <button onClick={() => setOpenNotificationDropdown(isOpen ? null : event.id)} className="btn-notify">Notify Later</button>
-                    {isOpen && (
-                      <div className="custom-dropdown-menu">
-                        <div onClick={() => handleNotifyLater(event, 1)} className="dropdown-action-item">1 Day Before</div>
-                        <div onClick={() => handleNotifyLater(event, 7)} className="dropdown-action-item">1 Week Before</div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </section>
-
-      <section style={{ marginTop: '40px' }}>
-        <h2>Available Events</h2>
-        <div className="events-grid">
-          {allUpcomingEvents.filter(e => !isRegistered(e.id)).map(event => (
-            <div key={event.id} className="card-base card-available">
-              <h3>{event.name}</h3>
-              <p>{event.date}</p>
-              <button onClick={() => toggleRegistration(event)} className="btn-register-main">Register</button>
-            </div>
-          ))}
-        </div>
-      </section>
+      <EventsSection title="Available Events">
+        {availableEvents.length === 0 ? (
+          <p>No available events</p>
+        ) : (
+          availableEvents.map(event => (
+            <AvailableEventCard
+              key={event.id}
+              event={event}
+              onRegister={() => toggleRegistration(event)}
+            />
+          ))
+        )}
+      </EventsSection>
     </div>
   );
 }
