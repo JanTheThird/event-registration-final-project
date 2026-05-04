@@ -1,4 +1,3 @@
-// utils/database/db.ts
 import dbData from './database.json' with { type: 'json' };
 import type { Database, User, Event, Notification, Registration } from '../types/Index';
 
@@ -21,11 +20,6 @@ let db = loadDB();
 export const useDB = () => {
   const saveDB = (): void => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
-    console.log('DB Synced:', {
-      totalUsers: db.users.length,
-      registrations: db.registrations.length,
-      notifications: db.notifications.length
-    });
   };
 
   const getUsers = (): User[] => db.users.filter(u => u.status === 'active');
@@ -65,10 +59,20 @@ export const useDB = () => {
   const getEvents = (): Event[] => db.events;
   const findEvent = (id: number): Event | undefined => db.events.find(e => e.id === id);
 
-  const addEvent = (eventData: Omit<Event, 'id' | 'createdAt'>): Event => {
+  const addEvent = (eventData: {
+    name: string;
+    date: string;
+    quota: number;
+    location: string;
+    description: string;
+  }): Event => {
     const newEvent: Event = {
       id: db.events.length > 0 ? Math.max(...db.events.map(e => e.id)) + 1 : 1,
-      ...eventData,
+      name: eventData.name,
+      date: eventData.date,
+      quota: eventData.quota,
+      location: eventData.location,
+      description: eventData.description,
       createdAt: new Date().toISOString().split('T')[0]
     };
     db.events.push(newEvent);
@@ -76,10 +80,16 @@ export const useDB = () => {
     return newEvent;
   };
 
-  const updateEvent = (eventId: number, updates: Partial<Event>): boolean => {
-    const index = db.events.findIndex(e => e.id === eventId);
-    if (index === -1) return false;
-    db.events[index] = { ...db.events[index], ...updates };
+  const updateEvent = (eventId: number, updates: any): boolean => {
+    const eventIndex = db.events.findIndex(e => e.id === eventId);
+    if (eventIndex === -1) return false;
+    
+    db.events[eventIndex] = { 
+      ...db.events[eventIndex], 
+      ...updates,
+      lastUpdated: new Date().toISOString().split('T')[0]
+    };
+    
     saveDB();
     return true;
   };
@@ -91,7 +101,6 @@ export const useDB = () => {
     return true;
   };
 
-  // --- Fixed Notification Method ---
   const getNotifications = (): Notification[] => db.notifications || [];
   
   const addNotification = (
@@ -100,7 +109,7 @@ export const useDB = () => {
     const newNotif: Notification = {
       id: Date.now(),
       timestamp: new Date().toISOString(),
-      read: false, // Default to unread
+      read: false,
       ...notification,
     };
     db.notifications.push(newNotif);
@@ -116,7 +125,10 @@ export const useDB = () => {
     return true;
   };
 
-  const clearNotifications = () => { db.notifications = []; saveDB(); };
+  const clearNotifications = () => { 
+    db.notifications = []; 
+    saveDB(); 
+  };
 
   const getUserRegistrations = (userId: number): number[] => {
     return db.registrations

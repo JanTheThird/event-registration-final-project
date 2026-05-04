@@ -8,14 +8,6 @@ import UserTable from './components/UserTable';
 import EventCard from './components/EventCard';
 import AnalyticsModal from './components/AnalyticsModal';
 
-interface EventFormData {
-  name: string;
-  date: string;
-  quota: number;
-  location: string;
-  description: string;
-}
-
 interface EventAnalytics {
   totalRegistered: number;
   quota: number;
@@ -31,14 +23,12 @@ export default function AdminPage() {
   const [events, setEvents] = useState<Event[]>([]);
   const [showAnalytics, setShowAnalytics] = useState<Event | null>(null);
   const [analytics, setAnalytics] = useState<EventAnalytics | null>(null);
+  const [editingEvent, setEditingEvent] = useState<Event | null>(null);
 
   useEffect(() => {
     refreshData();
   }, []);
 
-  // ---------------------------
-  // DATA REFRESH
-  // ---------------------------
   const refreshData = () => {
     setActiveUsers(db.getUsers());
     setInactiveUsers(db.getAllUsers().filter(u => u.status === 'inactive'));
@@ -54,22 +44,16 @@ export default function AdminPage() {
     setEvents(db.getEvents());
   };
 
-  // ---------------------------
-  // EVENT ANALYTICS
-  // ---------------------------
   const getEventStatus = (event: Event): 'upcoming' | 'past' => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-
     const eventDate = new Date(event.date);
     eventDate.setHours(0, 0, 0, 0);
-
     return eventDate >= today ? 'upcoming' : 'past';
   };
 
   const getEventAnalytics = (event: Event): EventAnalytics => {
     const status = getEventStatus(event);
-
     if (status === 'upcoming') {
       return {
         totalRegistered: 0,
@@ -78,9 +62,7 @@ export default function AdminPage() {
         status: 'upcoming'
       };
     }
-
     const totalRegistered = db.getRegistrationCount(event.id);
-
     return {
       totalRegistered,
       quota: event.quota,
@@ -89,9 +71,6 @@ export default function AdminPage() {
     };
   };
 
-  // ---------------------------
-  // USER HANDLERS
-  // ---------------------------
   const handleAddUser = (email: string, role: 'student' | 'admin') => {
     if (!email) return alert('Email is required');
     db.addUser(email, role);
@@ -110,27 +89,39 @@ export default function AdminPage() {
     }
   };
 
-  // ---------------------------
-  // EVENT HANDLERS
-  // ---------------------------
-  const validateForm = (formData: EventFormData): string[] => {
+  const validateForm = (formData: any): string[] => {
     const errors: string[] = [];
-
     if (!formData.name.trim()) errors.push('Name required');
     if (!formData.date) errors.push('Date required');
     if (formData.quota < 0) errors.push('Quota must be >= 0');
     if (!formData.location.trim()) errors.push('Location required');
     if (!formData.description.trim()) errors.push('Description required');
-
     return errors;
   };
 
-  const handleAddEvent = (data: EventFormData) => {
+  const handleAddEvent = (data: any) => {
     const errors = validateForm(data);
     if (errors.length) return alert(errors.join('\n'));
-
     db.addEvent(data);
+    setEditingEvent(null);
     refreshEvents();
+  };
+
+  const handleUpdateEvent = (data: any) => {
+    const errors = validateForm(data);
+    if (errors.length) return alert(errors.join('\n'));
+    if (!data.id) return alert('Event ID missing');
+    db.updateEvent(data.id, data);
+    setEditingEvent(null);
+    refreshEvents();
+  };
+
+  const handleEditEvent = (event: Event) => {
+    setEditingEvent(event);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingEvent(null);
   };
 
   const handleDeleteEvent = (eventId: number) => {
@@ -145,21 +136,21 @@ export default function AdminPage() {
     setShowAnalytics(event);
   };
 
-  // ---------------------------
-  // RENDER
-  // ---------------------------
   return (
     <div>
       <h1>Admin Dashboard</h1>
 
-      {/* Forms */}
+      <AddEventForm 
+        onAdd={handleAddEvent}
+        editingEvent={editingEvent}
+        onUpdate={handleUpdateEvent}
+        onCancel={handleCancelEdit}
+      />
+      <hr />
+
       <AddUserForm onAdd={handleAddUser} />
       <hr />
-      <AddEventForm onAdd={handleAddEvent} />
 
-      <hr />
-
-      {/* Users */}
       <UserTable
         title="Active Users"
         users={activeUsers}
@@ -176,22 +167,19 @@ export default function AdminPage() {
 
       <hr />
 
-      {/* Events */}
       <section>
         <h2>Events Management ({events.length})</h2>
-
         {events.map(event => (
           <EventCard
             key={event.id}
             event={event}
-            onEdit={() => alert('Edit not yet extracted')}
+            onEdit={() => handleEditEvent(event)}
             onDelete={() => handleDeleteEvent(event.id)}
             onAnalytics={() => showEventAnalytics(event)}
           />
         ))}
       </section>
 
-      {/* Modal */}
       <AnalyticsModal
         event={showAnalytics}
         analytics={analytics}
