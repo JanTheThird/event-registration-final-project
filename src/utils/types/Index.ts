@@ -1,6 +1,7 @@
 export interface User {
   id: number;
   email: string;
+  password: string;
   role: 'student' | 'admin';
   status: 'active' | 'inactive';
   lastUpdated: string;
@@ -10,10 +11,12 @@ export interface Event {
   id: number;
   name: string;
   date: string;
+  quota: number;
   location: string;
   description: string;
-  quota: number;
+  registeredCount?: number;
   createdAt: string;
+  lastUpdated?: string;
 }
 
 export interface Notification {
@@ -31,18 +34,6 @@ export interface Registration {
   id: number;
   userId: number;
   eventId: number;
-}
-
-export interface Event {
-  id: number;
-  name: string;
-  date: string;
-  quota: number;
-  location: string;
-  description: string;
-  registeredCount: number; // ✅ NEW: tracks registered users
-  createdAt: string;
-  lastUpdated?: string;
 }
 
 export interface Database {

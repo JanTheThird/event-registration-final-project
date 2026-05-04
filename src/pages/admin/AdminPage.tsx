@@ -71,9 +71,10 @@ export default function AdminPage() {
     };
   };
 
-  const handleAddUser = (email: string, role: 'student' | 'admin') => {
+  const handleAddUser = (email: string, password: string, role: 'student' | 'admin') => {
     if (!email) return alert('Email is required');
-    db.addUser(email, role);
+    if (!password) return alert('Password is required');
+    db.addUser(email, password, role);
     refreshUsers();
   };
 

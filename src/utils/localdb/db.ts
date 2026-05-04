@@ -4,9 +4,23 @@ import type { Database, User, Event, Notification, Registration } from '../types
 const STORAGE_KEY = 'app_local_db';
 
 const loadDB = (): Database & { notifications: Notification[], registrations: Registration[] } => {
+  const seedUsers = (dbData as Database).users;
+  const fallbackPasswordsByEmail = new Map(
+    seedUsers.map((user) => [user.email.toLowerCase(), user.password])
+  );
+
   const saved = localStorage.getItem(STORAGE_KEY);
   if (saved) {
-    return JSON.parse(saved);
+    const parsed = JSON.parse(saved) as Database & { notifications?: Notification[], registrations?: Registration[] };
+    return {
+      ...parsed,
+      users: parsed.users.map((user) => ({
+        ...user,
+        password: user.password ?? fallbackPasswordsByEmail.get(user.email.toLowerCase()) ?? 'password123',
+      })),
+      notifications: parsed.notifications ?? [],
+      registrations: parsed.registrations ?? [],
+    };
   }
   return {
     ...(dbData as Database),
@@ -35,11 +49,22 @@ export const useDB = () => {
   const getUsers = (): User[] => db.users.filter(u => u.status === 'active');
   const getAllUsers = (): User[] => db.users;
   const findUser = (id: number): User | undefined => db.users.find(u => u.id === id);
+  const authenticateUser = (email: string, password: string): User | null => {
+    const normalizedEmail = email.trim().toLowerCase();
+    const user = db.users.find(
+      (u) =>
+        u.email.toLowerCase() === normalizedEmail &&
+        u.password === password &&
+        u.status === 'active'
+    );
+    return user ?? null;
+  };
 
-  const addUser = (email: string, role: 'student' | 'admin'): User => {
+  const addUser = (email: string, password: string, role: 'student' | 'admin'): User => {
     const newUser: User = {
       id: db.users.length > 0 ? Math.max(...db.users.map(u => u.id)) + 1 : 1,
       email,
+      password,
       role,
       status: 'active',
       lastUpdated: new Date().toISOString().split('T')[0]
@@ -189,6 +214,7 @@ export const useDB = () => {
     getUsers,
     getAllUsers,
     findUser,
+    authenticateUser,
     addUser,
     toggleUserStatus,
     deleteInactiveUser,

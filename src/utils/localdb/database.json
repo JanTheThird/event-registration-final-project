@@ -3,6 +3,7 @@
     {
       "id": 1,
       "email": "john@example.com",
+      "password": "john123",
       "role": "student",
       "status": "active",
       "lastUpdated": "2024-01-01"
@@ -10,6 +11,7 @@
     {
       "id": 2,
       "email": "jane@example.com", 
+      "password": "jane123",
       "role": "student",
       "status": "active",
       "lastUpdated": "2024-01-02"
@@ -17,6 +19,7 @@
     {
       "id": 3,
       "email": "bob@example.com",
+      "password": "bob123",
       "role": "student", 
       "status": "inactive",
       "lastUpdated": "2024-01-03"
@@ -24,6 +27,7 @@
     {
       "id": 4,
       "email": "admin1@example.com",
+      "password": "admin123",
       "role": "admin",
       "status": "active",
       "lastUpdated": "2024-01-01"
@@ -31,6 +35,7 @@
     {
       "id": 5,
       "email": "admin2@example.com",
+      "password": "admin234",
       "role": "admin",
       "status": "active",
       "lastUpdated": "2024-01-01"

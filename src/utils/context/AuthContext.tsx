@@ -24,16 +24,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (savedUserId) {
       const parsedId = parseInt(savedUserId);
       const user = db.findUser(parsedId);
-      if (user) {
+      if (user && user.status === 'active') {
         setUserId(parsedId);
-        // Auto-redirect based on role
-        setTimeout(() => {
-          if (user.role === 'admin') {
-            navigate('/admin', { replace: true });
-          } else {
-            navigate('/student', { replace: true });
-          }
-        }, 0);
+        // Do not redirect here — user should see the landing page first at "/".
+        // They can log in again or use "Continue" on the landing page if a session exists.
+      } else {
+        localStorage.removeItem('currentUserId');
       }
     }
     setIsLoading(false);

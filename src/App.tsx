@@ -9,7 +9,12 @@ import type { ReactNode } from 'react';
 
 // ✅ Protected Route Component (Reusable!)
 function ProtectedRoute({ children }: { children: ReactNode }) {
-  const { userId } = useAuth();
+  const { userId, isLoading } = useAuth();
+  const db = useDB();
+  if (isLoading) return <div className="page-container">Checking session...</div>;
+  if (!userId) return <Navigate to="/" replace />;
+  const user = db.findUser(userId);
+  if (!user || user.status !== 'active') return <Navigate to="/" replace />;
   return userId ? <>{children}</> : <Navigate to="/" replace />;
 }
 

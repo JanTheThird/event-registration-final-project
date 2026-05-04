@@ -2,11 +2,12 @@ import { useForm } from 'react-hook-form';
 
 interface AddUserFormValues {
   email: string;
+  password: string;
   role: 'student' | 'admin';
 }
 
 export default function AddUserForm({ onAdd }: {
-  onAdd: (email: string, role: 'student' | 'admin') => void;
+  onAdd: (email: string, password: string, role: 'student' | 'admin') => void;
 }) {
   const {
     register,
@@ -16,13 +17,14 @@ export default function AddUserForm({ onAdd }: {
   } = useForm<AddUserFormValues>({
     defaultValues: {
       email: '',
+      password: '',
       role: 'student',
     },
   });
 
   const onSubmit = (data: AddUserFormValues) => {
-    onAdd(data.email, data.role);
-    reset({ email: '', role: data.role });
+    onAdd(data.email, data.password, data.role);
+    reset({ email: '', password: '', role: data.role });
   };
 
   return (
@@ -41,6 +43,18 @@ export default function AddUserForm({ onAdd }: {
           })}
         />
         {errors.email && <p className="error-message">{errors.email.message}</p>}
+        <input
+          type="password"
+          placeholder="Password"
+          {...register('password', {
+            required: 'Password is required',
+            minLength: {
+              value: 6,
+              message: 'Password must be at least 6 characters',
+            },
+          })}
+        />
+        {errors.password && <p className="error-message">{errors.password.message}</p>}
         <select
           {...register('role')}
         >
