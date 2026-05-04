@@ -18,41 +18,43 @@ interface AddEventFormProps {
 }
 
 export default function AddEventForm({ 
-  onAdd, 
+ onAdd, 
   editingEvent, 
   onUpdate, 
   onCancel 
 }: AddEventFormProps) {
   const [form, setForm] = useState<EventFormData>({
     name: '',
-    date: '',
-    quota: 0,
+    date: new Date().toISOString().split('T')[0], // ✅ Default today
+    quota: 10, // ✅ Default quota
     location: '',
     description: ''
   });
 
+
   // Populate form when editing
   useEffect(() => {
-    if (editingEvent) {
-      setForm({
-        id: editingEvent.id,
-        name: editingEvent.name,
-        date: editingEvent.date,
-        quota: editingEvent.quota,
-        location: editingEvent.location || '',
-        description: editingEvent.description || ''
-      });
-    } else {
-      setForm({ 
-        id: undefined,
-        name: '', 
-        date: '', 
-        quota: 0, 
-        location: '', 
-        description: '' 
-      });
-    }
-  }, [editingEvent]);
+  if (editingEvent) {
+    setForm({
+      id: editingEvent.id,
+      name: editingEvent.name,
+      date: editingEvent.date,
+      quota: editingEvent.quota,
+      location: editingEvent.location || '',
+      description: editingEvent.description || ''
+    });
+  } else {
+    setForm({ 
+      id: undefined,
+      name: '',
+      date: new Date().toISOString().split('T')[0],
+      quota: 10,
+      location: '',
+      description: ''
+    });
+  }
+}, [editingEvent]);
+
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

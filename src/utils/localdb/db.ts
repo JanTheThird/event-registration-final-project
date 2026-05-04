@@ -22,6 +22,16 @@ export const useDB = () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
   };
 
+  // Update event quota based on registrations
+  const updateEventQuota = (eventId: number) => {
+    const event = db.events.find(e => e.id === eventId);
+    if (!event) return;
+
+    const registrationCount = db.registrations.filter(r => r.eventId === eventId).length;
+    event.registeredCount = registrationCount; // ✅ Tracks registered users
+    saveDB();
+  };
+
   const getUsers = (): User[] => db.users.filter(u => u.status === 'active');
   const getAllUsers = (): User[] => db.users;
   const findUser = (id: number): User | undefined => db.users.find(u => u.id === id);
@@ -73,6 +83,7 @@ export const useDB = () => {
       quota: eventData.quota,
       location: eventData.location,
       description: eventData.description,
+      registeredCount: 0, // ✅ Start with 0 registered
       createdAt: new Date().toISOString().split('T')[0]
     };
     db.events.push(newEvent);
@@ -136,29 +147,42 @@ export const useDB = () => {
       .map(r => r.eventId);
   };
 
-  const registerForEvent = (userId: number, eventId: number): void => {
+  const registerForEvent = (userId: number, eventId: number): boolean => {
     const alreadyRegistered = db.registrations.some(
       r => r.userId === userId && r.eventId === eventId
     );
-    if (!alreadyRegistered) {
-      db.registrations.push({
-        id: Date.now(),
-        userId,
-        eventId
-      });
-      saveDB();
-    }
+    if (alreadyRegistered) return false;
+
+    db.registrations.push({
+      id: Date.now(),
+      userId,
+      eventId
+    });
+    
+    updateEventQuota(eventId); // ✅ Auto-update event quota
+    saveDB();
+    return true;
   };
 
-  const unregisterFromEvent = (userId: number, eventId: number): void => {
+  const unregisterFromEvent = (userId: number, eventId: number): boolean => {
+    const wasRegistered = db.registrations.some(
+      r => r.userId === userId && r.eventId === eventId
+    );
+    
+    if (!wasRegistered) return false;
+
     db.registrations = db.registrations.filter(
       r => !(r.userId === userId && r.eventId === eventId)
     );
+    
+    updateEventQuota(eventId); // ✅ Auto-update event quota
     saveDB();
+    return true;
   };
 
   const getRegistrationCount = (eventId: number): number => {
-    return db.registrations.filter(r => r.eventId === eventId).length;
+    const event = db.events.find(e => e.id === eventId);
+    return event?.registeredCount || 0; // ✅ Use cached count
   };
 
   return {

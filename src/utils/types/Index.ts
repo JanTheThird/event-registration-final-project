@@ -33,6 +33,18 @@ export interface Registration {
   eventId: number;
 }
 
+export interface Event {
+  id: number;
+  name: string;
+  date: string;
+  quota: number;
+  location: string;
+  description: string;
+  registeredCount: number; // ✅ NEW: tracks registered users
+  createdAt: string;
+  lastUpdated?: string;
+}
+
 export interface Database {
   users: User[];
   events: Event[];
