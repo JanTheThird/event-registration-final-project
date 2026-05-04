@@ -65,7 +65,8 @@ export default function AdminPage() {
   };
 
   const getEventAnalytics = (event: Event): EventAnalytics => {
-    const status = getEventStatus(event);
+  const status = getEventStatus(event);
+  
     
     if (status === 'upcoming') {
       return {
@@ -77,15 +78,17 @@ export default function AdminPage() {
     }
 
     // Mock registered count - in real app, you'd get this from registrations
-    const totalRegistered = Math.floor(Math.random() * (event.quota + 10));
+    const totalRegistered = db.getRegistrationCount(event.id);
     
-    return {
-      totalRegistered,
-      quota: event.quota,
-      isSuccess: totalRegistered >= event.quota,
-      status: totalRegistered >= event.quota ? 'success' : 'failed'
-    };
+   return {
+    totalRegistered,
+    quota: event.quota,
+    isSuccess: totalRegistered >= event.quota,
+    status: status === 'past' 
+      ? (totalRegistered >= event.quota ? 'success' : 'failed') 
+      : 'upcoming'
   };
+};
 
   const handleToggleStatus = (id: number) => {
     db.toggleUserStatus(id);
@@ -227,6 +230,8 @@ export default function AdminPage() {
   const getEditingEvent = (eventId: number): EditingEvent | undefined => {
     return editingEvents.find(e => e.id === eventId);
   };
+
+  
 
   return (
     <div>

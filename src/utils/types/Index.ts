@@ -27,6 +27,12 @@ export interface Notification {
   read: boolean;
 }
 
+export interface Registration {
+  id: number;
+  userId: number;
+  eventId: number;
+}
+
 export interface Database {
   users: User[];
   events: Event[];

@@ -1,10 +1,11 @@
 // utils/database/db.ts
 import dbData from './database.json' with { type: 'json' };
-import type { Database, User, Event, Notification } from '../types/Index';
+import type { Database, User, Event, Notification, Registration } from '../types/Index';
 
-let db: Database & { notifications: Notification[] } = { 
+let db: Database & { notifications: Notification[], registrations: Registration[] } = { 
   ...(dbData as Database),
-  notifications: [] 
+  notifications: [],
+  registrations: [] // Initialize empty
 };
 
 export const useDB = () => {
@@ -146,6 +147,27 @@ const addEvent = (eventData: Omit<Event, 'id' | 'createdAt'>): Event => {
   return newEvent;
 };
 
+const registerForEvent = (userId: number, eventId: number) => {
+    const exists = db.registrations.find(r => r.userId === userId && r.eventId === eventId);
+    if (!exists) {
+      db.registrations.push({
+        id: Date.now(),
+        userId,
+        eventId
+      });
+      saveDB();
+    }
+  };
+
+  const unregisterFromEvent = (userId: number, eventId: number) => {
+    db.registrations = db.registrations.filter(r => !(r.userId === userId && r.eventId === eventId));
+    saveDB();
+  };
+
+  const getRegistrationCount = (eventId: number): number => {
+    return db.registrations.filter(r => r.eventId === eventId).length;
+  };
+
   // ======================
   // RETURN ALL METHODS
   // ======================
@@ -171,6 +193,9 @@ const addEvent = (eventData: Omit<Event, 'id' | 'createdAt'>): Event => {
     clearReadNotifications,
     addUser,
     addEvent,
+    registerForEvent,
+    unregisterFromEvent,
+    getRegistrationCount,
 
     // SAVE
     saveDB

@@ -62,15 +62,22 @@ export default function StudentPage() {
 
   const isRegistered = (eventId: number) => registeredEvents.some(e => e.id === eventId);
 
-  const toggleRegistration = (event: Event) => {
-    let updated;
-    const registering = !isRegistered(event.id);
+ const toggleRegistration = (event: Event) => {
+  const registering = !isRegistered(event.id);
+  const currentUserId = 1;
 
     if (registering) {
-      updated = [...registeredEvents, event];
-    } else {
-      updated = registeredEvents.filter(e => e.id !== event.id);
-    }
+    db.registerForEvent(currentUserId, event.id); // Update DB
+  } else {
+    db.unregisterFromEvent(currentUserId, event.id); // Update DB
+  }
+  let updated;
+  if (registering) {
+    updated = [...registeredEvents, event];
+  } else {
+    updated = registeredEvents.filter(e => e.id !== event.id);
+  }
+  
 
     setRegisteredEvents(updated);
     localStorage.setItem('demoRegisteredEvents', JSON.stringify(updated.map(e => e.id)));
