@@ -14,6 +14,8 @@ export default function StudentPage() {
 
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  
+
   const refreshUnreadCount = useCallback(() => {
     const raw = localStorage.getItem('demoNotifications');
     const notifications = raw ? JSON.parse(raw) : [];
