@@ -1,23 +1,24 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Container, Stack, Button } from 'react-bootstrap';
+import { Container, Button, Nav, Tab } from 'react-bootstrap';
 import { useDB } from '../../utils/localdb/db';
 import type { Event } from '../../utils/types/Index';
 
-import NotificationBadge from '../student/components/student/NotificationBadge';
-import RegisteredEventCard from '../student/components/student/RegisteredEventCard';
-import AvailableEventCard from '../student/components/student/AvailableEventCard';
-import EventsSection from '../student/components/student/EventsSection';
+import RegisteredEventCard from './components/student/RegisteredEventCard';
+import AvailableEventCard from './components/student/AvailableEventCard';
+import EventsSection from './components/student/EventsSection';
 import { useAuth } from '../../utils/context/AuthContext';
+import StudentNavbar from './components/StudentNavbar';
 
 export default function StudentPage() {
   const db = useDB();
-  const { userId, logout, isLoading: authLoading } = useAuth();
+  const { userId, isLoading: authLoading } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
   const [unread, setUnread] = useState(0);
   const [openDropdown, setOpenDropdown] = useState<number | null>(null);
+  const [studentSection, setStudentSection] = useState<'registered' | 'upcoming'>('upcoming');
 
   const today = new Date().toISOString().split('T')[0];
 
@@ -50,19 +51,19 @@ export default function StudentPage() {
   // ---------------------------
   // EFFECTS
   // ---------------------------
-  const refreshUnread = () => {
+  const refreshUnread = useCallback(() => {
     if (!userIdNum) {
       setUnread(0);
       return;
     }
-    
-    const notifs = db.getNotifications().filter(n => n.userId === userIdNum); // ✅ Fixed!
-    setUnread(notifs.filter(n => !n.read).length);
-  };
+
+    const notifs = db.getNotifications().filter((n) => n.userId === userIdNum);
+    setUnread(notifs.filter((n) => !n.read).length);
+  }, [db, userIdNum]);
 
   useEffect(() => {
     refreshUnread();
-  }, [userId, location.pathname]);
+  }, [refreshUnread, location.pathname]);
 
   // ---------------------------
   // HELPERS
@@ -149,53 +150,71 @@ export default function StudentPage() {
   }
 
   return (
-    <Container className="py-4 student-container">
-      <Stack
-        direction="horizontal"
-        className="page-header flex-wrap justify-content-between align-items-center gap-3 mb-4"
-      >
-        <div className="d-flex align-items-center gap-3 flex-wrap">
-          <NotificationBadge unread={unread} />
-          <h1 className="h3 mb-0">Student dashboard</h1>
-        </div>
-        <Button variant="outline-danger" size="sm" onClick={logout}>
-          Log out
-        </Button>
-      </Stack>
+    <>
+      <StudentNavbar unread={unread} />
+      <Container className="py-4 student-container">
+        <h1 className="h3 mb-3">Student dashboard</h1>
 
-      <EventsSection title="My Registered Events">
-        {registeredEvents.length === 0 ? (
-          <p>No registered events</p>
-        ) : (
-          registeredEvents.map(event => (
-            <RegisteredEventCard
-              key={event.id}
-              event={event}
-              daysUntil={getDaysUntil(event.date)}
-              isDropdownOpen={openDropdown === event.id}
-              onToggleDropdown={() =>
-                setOpenDropdown(openDropdown === event.id ? null : event.id)
-              }
-              onUnregister={() => toggleRegistration(event)}
-              onNotify={(d) => notifyLater(event, d)}
-            />
-          ))
-        )}
-      </EventsSection>
+        <Tab.Container
+          activeKey={studentSection}
+          onSelect={(k) => {
+            if (k === 'registered' || k === 'upcoming') setStudentSection(k);
+          }}
+        >
+          <Nav variant="pills" className="mb-4 flex-wrap gap-2" role="tablist">
+            <Nav.Item>
+              <Nav.Link eventKey="upcoming" role="tab">
+                Upcoming events
+              </Nav.Link>
+            </Nav.Item>
+            <Nav.Item>
+              <Nav.Link eventKey="registered" role="tab">
+                My registered events
+              </Nav.Link>
+            </Nav.Item>
+          </Nav>
 
-      <EventsSection title="Available Events">
-        {availableEvents.length === 0 ? (
-          <p>No available events</p>
-        ) : (
-          availableEvents.map(event => (
-            <AvailableEventCard
-              key={event.id}
-              event={event}
-              onRegister={() => toggleRegistration(event)}
-            />
-          ))
-        )}
-      </EventsSection>
-    </Container>
+          <Tab.Content>
+            <Tab.Pane eventKey="upcoming" className="pt-1" mountOnEnter unmountOnExit={false}>
+              <EventsSection title="Browse upcoming">
+                {availableEvents.length === 0 ? (
+                  <p className="text-muted">No upcoming events to join right now.</p>
+                ) : (
+                  availableEvents.map(event => (
+                    <AvailableEventCard
+                      key={event.id}
+                      event={event}
+                      onRegister={() => toggleRegistration(event)}
+                    />
+                  ))
+                )}
+              </EventsSection>
+            </Tab.Pane>
+
+            <Tab.Pane eventKey="registered" className="pt-1" mountOnEnter unmountOnExit={false}>
+              <EventsSection title="You are registered for">
+                {registeredEvents.length === 0 ? (
+                  <p className="text-muted">You have not registered for any upcoming events yet.</p>
+                ) : (
+                  registeredEvents.map(event => (
+                    <RegisteredEventCard
+                      key={event.id}
+                      event={event}
+                      daysUntil={getDaysUntil(event.date)}
+                      isDropdownOpen={openDropdown === event.id}
+                      onToggleDropdown={() =>
+                        setOpenDropdown(openDropdown === event.id ? null : event.id)
+                      }
+                      onUnregister={() => toggleRegistration(event)}
+                      onNotify={(d) => notifyLater(event, d)}
+                    />
+                  ))
+                )}
+              </EventsSection>
+            </Tab.Pane>
+          </Tab.Content>
+        </Tab.Container>
+      </Container>
+    </>
   );
 }

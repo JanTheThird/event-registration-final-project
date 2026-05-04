@@ -56,6 +56,29 @@ body {
   background-color: var(--pal-bg);
 }
 
+/* Top nav — admin & student */
+.app-navbar {
+  background-color: var(--pal-bg) !important;
+  border-color: var(--pal-surface) !important;
+}
+
+.app-navbar .navbar-brand {
+  color: var(--pal-deep);
+}
+
+.app-navbar .navbar-nav .nav-link {
+  color: var(--pal-deep);
+}
+
+.app-navbar .navbar-nav .nav-link:hover {
+  color: var(--pal-accent);
+}
+
+.app-navbar .navbar-nav .nav-link.active {
+  color: var(--pal-accent);
+  font-weight: 600;
+}
+
 .page-container {
   max-width: 1200px;
   margin: 0 auto;

@@ -1,4 +1,4 @@
-import type { Notification } from '../../../../utils/types/Index';
+import type { Notification } from '@/utils/types/Index';
 import { Badge, ListGroup } from 'react-bootstrap';
 
 export default function NotificationItem({
@@ -12,6 +12,7 @@ export default function NotificationItem({
     <ListGroup.Item
       className={notif.read ? '' : 'bg-light'}
       action={!notif.read}
+      {...(!notif.read ? { type: 'button' as const } : {})}
       onClick={() => {
         if (!notif.read) onMarkRead(notif.id);
       }}

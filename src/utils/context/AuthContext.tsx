@@ -37,7 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     }
     setIsLoading(false);
-  }, []);
+  }, [db]);
 
   const login = (id: number) => {
     const user = db.findUser(id);

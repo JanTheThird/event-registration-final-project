@@ -1,25 +1,13 @@
-import { useNavigate } from 'react-router-dom';
-import { Badge, Button } from 'react-bootstrap';
+        import { useNavigate } from 'react-router-dom';
 
-export default function NotificationBadge({
-  unread,
-}: {
-  unread: number;
-}) {
-  const navigate = useNavigate();
+        export default function NotificationBadge({ unread }: {
+        unread: number;
+        }) {
+        const navigate = useNavigate();
 
-  return (
-    <Button
-      variant="primary"
-      className="rounded-pill d-inline-flex align-items-center gap-2"
-      onClick={() => navigate('/notifications')}
-    >
-      Notifications
-      {unread > 0 && (
-        <Badge bg="light" text="dark" pill>
-          {unread}
-        </Badge>
-      )}
-    </Button>
-  );
-}
+        return (
+            <div onClick={() => navigate('/notifications')} className="notif-badge-float">
+            Notifications {unread > 0 && <span className="unread-dot">{unread}</span>}
+            </div>
+        );
+        }

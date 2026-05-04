@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Container } from 'react-bootstrap';
+import StudentNavbar from './components/StudentNavbar';
 import { useDB } from '../../utils/localdb/db';
 import type { Notification } from '../../utils/types/Index';
 import { useAuth } from '../../utils/context/AuthContext';
@@ -12,7 +13,7 @@ export default function NotificationLogPage() {
   const { userId } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
-  const refresh = () => {
+  const refresh = useCallback(() => {
     if (!userId) {
       setNotifications([]);
       return;
@@ -26,12 +27,11 @@ export default function NotificationLogPage() {
           new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
       );
     setNotifications(mine);
-  };
+  }, [db, userId]);
 
   useEffect(() => {
     refresh();
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- db API reads live module state; userId drives reload
-  }, [userId]);
+  }, [refresh]);
 
   const markAllRead = () => {
     if (!userId) return;
@@ -52,19 +52,24 @@ export default function NotificationLogPage() {
     refresh();
   };
 
-  return (
-    <Container className="py-4" style={{ maxWidth: 720 }}>
-      <NotificationHeader
-        onMarkAllRead={markAllRead}
-        onClearAll={clearAll}
-      />
+  const unread = notifications.filter((n) => !n.read).length;
 
-      <div className="mt-3">
-        <NotificationList
-          notifications={notifications}
-          onMarkRead={markOneRead}
+  return (
+    <>
+      <StudentNavbar unread={unread} />
+      <Container className="py-4" style={{ maxWidth: 720 }}>
+        <NotificationHeader
+          onMarkAllRead={markAllRead}
+          onClearAll={clearAll}
         />
-      </div>
-    </Container>
+
+        <div className="mt-3">
+          <NotificationList
+            notifications={notifications}
+            onMarkRead={markOneRead}
+          />
+        </div>
+      </Container>
+    </>
   );
 }

@@ -1,25 +1,17 @@
-import { useState, useEffect } from 'react';
-import { Button, Container, Stack } from 'react-bootstrap';
+import { useState, useEffect, useCallback } from 'react';
+import { Container, Nav, Tab } from 'react-bootstrap';
 import { useDB } from '../../utils/localdb/db';
-import { useAuth } from '../../utils/context/AuthContext';
 import type { Event, User } from '../../utils/types/Index';
 
 import AddUserForm from './components/AddUserForm';
-import AddEventForm from './components/AddEventForm';
+import AddEventForm, { type EventFormData } from './components/AddEventForm';
 import UserTable from './components/UserTable';
 import EventCard from './components/EventCard';
-import AnalyticsModal from './components/AnalyticsModal';
-
-interface EventAnalytics {
-  totalRegistered: number;
-  quota: number;
-  isSuccess: boolean;
-  status: 'success' | 'failed' | 'upcoming';
-}
+import AnalyticsModal, { type EventAnalytics } from './components/AnalyticsModal';
+import AdminNavbar from './components/AdminNavbar';
 
 export default function AdminPage() {
   const db = useDB();
-  const { logout } = useAuth();
 
   const [activeUsers, setActiveUsers] = useState<User[]>([]);
   const [inactiveUsers, setInactiveUsers] = useState<User[]>([]);
@@ -27,16 +19,17 @@ export default function AdminPage() {
   const [showAnalytics, setShowAnalytics] = useState<Event | null>(null);
   const [analytics, setAnalytics] = useState<EventAnalytics | null>(null);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
+  const [adminSection, setAdminSection] = useState<'users' | 'events'>('events');
+
+  const loadLists = useCallback(() => {
+    setActiveUsers(db.getUsers());
+    setInactiveUsers(db.getAllUsers().filter((u) => u.status === 'inactive'));
+    setEvents(db.getEvents());
+  }, [db]);
 
   useEffect(() => {
-    refreshData();
-  }, []);
-
-  const refreshData = () => {
-    setActiveUsers(db.getUsers());
-    setInactiveUsers(db.getAllUsers().filter(u => u.status === 'inactive'));
-    setEvents(db.getEvents());
-  };
+    loadLists();
+  }, [loadLists]);
 
   const refreshUsers = () => {
     setActiveUsers(db.getUsers());
@@ -61,16 +54,14 @@ export default function AdminPage() {
       return {
         totalRegistered: 0,
         quota: event.quota,
-        isSuccess: false,
-        status: 'upcoming'
+        status: 'upcoming' as const,
       };
     }
     const totalRegistered = db.getRegistrationCount(event.id);
     return {
       totalRegistered,
       quota: event.quota,
-      isSuccess: totalRegistered >= event.quota,
-      status: totalRegistered >= event.quota ? 'success' : 'failed'
+      status: totalRegistered >= event.quota ? ('success' as const) : ('failed' as const),
     };
   };
 
@@ -93,7 +84,7 @@ export default function AdminPage() {
     }
   };
 
-  const validateForm = (formData: any): string[] => {
+  const validateForm = (formData: EventFormData): string[] => {
     const errors: string[] = [];
     if (!formData.name.trim()) errors.push('Name required');
     if (!formData.date) errors.push('Date required');
@@ -103,7 +94,7 @@ export default function AdminPage() {
     return errors;
   };
 
-  const handleAddEvent = (data: any) => {
+  const handleAddEvent = (data: EventFormData) => {
     const errors = validateForm(data);
     if (errors.length) return alert(errors.join('\n'));
     db.addEvent(data);
@@ -111,11 +102,12 @@ export default function AdminPage() {
     refreshEvents();
   };
 
-  const handleUpdateEvent = (data: any) => {
+  const handleUpdateEvent = (data: EventFormData) => {
     const errors = validateForm(data);
     if (errors.length) return alert(errors.join('\n'));
     if (!data.id) return alert('Event ID missing');
-    db.updateEvent(data.id, data);
+    const { id, ...rest } = data;
+    db.updateEvent(id, rest);
     setEditingEvent(null);
     refreshEvents();
   };
@@ -141,62 +133,85 @@ export default function AdminPage() {
   };
 
   return (
-    <Container className="py-4">
-      <Stack
-        direction="horizontal"
-        className="justify-content-between align-items-center flex-wrap gap-3 mb-4"
-      >
-        <h1 className="h3 mb-0">Admin dashboard</h1>
-        <Button variant="outline-danger" size="sm" onClick={logout}>
-          Log out
-        </Button>
-      </Stack>
+    <>
+      <AdminNavbar />
+      <Container className="py-4">
+        <h1 className="h3 mb-3">Admin dashboard</h1>
 
-      <AddEventForm 
-        onAdd={handleAddEvent}
-        editingEvent={editingEvent}
-        onUpdate={handleUpdateEvent}
-        onCancel={handleCancelEdit}
-      />
-      <hr />
+        <Tab.Container
+          activeKey={adminSection}
+          onSelect={(k) => {
+            if (k === 'users' || k === 'events') setAdminSection(k);
+          }}
+        >
+          <Nav variant="pills" className="mb-4 flex-wrap gap-2" role="tablist">
+            <Nav.Item>
+              <Nav.Link eventKey="users" role="tab">
+                Users
+              </Nav.Link>
+            </Nav.Item>
+            <Nav.Item>
+              <Nav.Link eventKey="events" role="tab">
+                Events
+              </Nav.Link>
+            </Nav.Item>
+          </Nav>
 
-      <AddUserForm onAdd={handleAddUser} />
-      <hr />
+          <Tab.Content>
+            <Tab.Pane eventKey="users" className="pt-1" mountOnEnter unmountOnExit={false}>
+              <AddUserForm onAdd={handleAddUser} />
+              <hr className="my-4" />
 
-      <UserTable
-        title="Active Users"
-        users={activeUsers}
-        onToggle={handleToggleStatus}
-      />
+              <UserTable
+                title="Active Users"
+                users={activeUsers}
+                onToggle={handleToggleStatus}
+              />
 
-      <UserTable
-        title="Inactive Users"
-        users={inactiveUsers}
-        onToggle={handleToggleStatus}
-        onDelete={handleDeleteUser}
-        showDelete
-      />
+              <UserTable
+                title="Inactive Users"
+                users={inactiveUsers}
+                onToggle={handleToggleStatus}
+                onDelete={handleDeleteUser}
+                showDelete
+              />
+            </Tab.Pane>
 
-      <hr />
+            <Tab.Pane eventKey="events" className="pt-1" mountOnEnter unmountOnExit={false}>
+              <AddEventForm 
+                onAdd={handleAddEvent}
+                editingEvent={editingEvent}
+                onUpdate={handleUpdateEvent}
+                onCancel={handleCancelEdit}
+              />
+              <hr className="my-4" />
 
-      <section>
-        <h2>Events Management ({events.length})</h2>
-        {events.map(event => (
-          <EventCard
-            key={event.id}
-            event={event}
-            onEdit={() => handleEditEvent(event)}
-            onDelete={() => handleDeleteEvent(event.id)}
-            onAnalytics={() => showEventAnalytics(event)}
-          />
-        ))}
-      </section>
+              <section>
+                <h2 className="h4 mb-3">Events ({events.length})</h2>
+                {events.length === 0 ? (
+                  <p className="text-muted">No events yet. Add one above.</p>
+                ) : (
+                  events.map(event => (
+                    <EventCard
+                      key={event.id}
+                      event={event}
+                      onEdit={() => handleEditEvent(event)}
+                      onDelete={() => handleDeleteEvent(event.id)}
+                      onAnalytics={() => showEventAnalytics(event)}
+                    />
+                  ))
+                )}
+              </section>
+            </Tab.Pane>
+          </Tab.Content>
+        </Tab.Container>
 
-      <AnalyticsModal
-        event={showAnalytics}
-        analytics={analytics}
-        onClose={() => setShowAnalytics(null)}
-      />
-    </Container>
+        <AnalyticsModal
+          event={showAnalytics}
+          analytics={analytics}
+          onClose={() => setShowAnalytics(null)}
+        />
+      </Container>
+    </>
   );
 }

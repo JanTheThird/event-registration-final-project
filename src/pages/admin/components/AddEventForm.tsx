@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import type { Event } from '../../../utils/types/Index';
 
-interface EventFormData {
+export interface EventFormData {
   id?: number;
   name: string;
   date: string;
@@ -18,20 +18,23 @@ interface AddEventFormProps {
   onCancel?: () => void;
 }
 
-export default function AddEventForm({ 
- onAdd, 
-  editingEvent, 
-  onUpdate, 
-  onCancel 
+export default function AddEventForm({
+  onAdd,
+  editingEvent,
+  onUpdate,
+  onCancel,
 }: AddEventFormProps) {
-  const defaultValues: EventFormData = {
-    name: '',
-    date: new Date().toISOString().split('T')[0], // ✅ Default today
-    quota: 10, // ✅ Default quota
-    location: '',
-    description: ''
-  };
-  const [form, setForm] = useState<EventFormData>(defaultValues);
+  const emptyForm = useMemo<EventFormData>(
+    () => ({
+      name: '',
+      date: new Date().toISOString().split('T')[0],
+      quota: 10,
+      location: '',
+      description: '',
+    }),
+    []
+  );
+  const [form, setForm] = useState<EventFormData>(emptyForm);
   const {
     register,
     handleSubmit,
@@ -39,28 +42,27 @@ export default function AddEventForm({
     reset,
     formState: { errors },
   } = useForm<EventFormData>({
-    defaultValues,
+    defaultValues: emptyForm,
   });
-
 
   // Populate form when editing
   useEffect(() => {
-  if (editingEvent) {
-    const eventForm: EventFormData = {
-      id: editingEvent.id,
-      name: editingEvent.name,
-      date: editingEvent.date,
-      quota: editingEvent.quota,
-      location: editingEvent.location || '',
-      description: editingEvent.description || ''
-    };
-    setForm(eventForm);
-    reset(eventForm);
-  } else {
-    setForm(defaultValues);
-    reset(defaultValues);
-  }
-}, [editingEvent, reset]);
+    if (editingEvent) {
+      const eventForm: EventFormData = {
+        id: editingEvent.id,
+        name: editingEvent.name,
+        date: editingEvent.date,
+        quota: editingEvent.quota,
+        location: editingEvent.location || '',
+        description: editingEvent.description || '',
+      };
+      setForm(eventForm);
+      reset(eventForm);
+    } else {
+      setForm(emptyForm);
+      reset(emptyForm);
+    }
+  }, [editingEvent, reset, emptyForm]);
 
 
   const onSubmit = (data: EventFormData) => {
@@ -73,8 +75,8 @@ export default function AddEventForm({
   };
 
   const handleCancel = () => {
-    setForm(defaultValues);
-    reset(defaultValues);
+    setForm(emptyForm);
+    reset(emptyForm);
     onCancel?.();
   };
 
