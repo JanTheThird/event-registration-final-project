@@ -2,14 +2,40 @@
 import dbData from './database.json' with { type: 'json' };
 import type { Database, User, Event, Notification, Registration } from '../types/Index';
 
-let db: Database & { notifications: Notification[], registrations: Registration[] } = { 
-  ...(dbData as Database),
-  notifications: [],
-  registrations: [] // Initialize empty
+// 1. Storage Key
+const STORAGE_KEY = 'app_local_db';
+
+// 2. Load function: Checks localStorage first, fallbacks to JSON file
+const loadDB = (): Database & { notifications: Notification[], registrations: Registration[] } => {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) {
+    return JSON.parse(saved);
+  }
+  // If no saved data, return the default with empty arrays for extras
+  return {
+    ...(dbData as Database),
+    notifications: [],
+    registrations: []
+  };
 };
 
-export const useDB = () => {
+// Initialize the global db variable
+let db = loadDB();
 
+export const useDB = () => {
+const saveDB = (): void => {
+    // 1. Commit the current state of the 'db' variable to the browser's disk
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
+    
+    // 2. Comprehensive logging so you can track what's happening in the console
+    console.log('💾 DB Synced to LocalStorage:', {
+      activeUsers: db.users.filter(u => u.status === 'active').length,
+      totalUsers: db.users.length,
+      events: db.events.length,
+      registrations: db.registrations?.length || 0,
+      notifications: db.notifications?.length || 0
+    });
+  };
   
   const getUsers = (): User[] => db.users.filter(u => u.status === 'active');
 
@@ -114,27 +140,20 @@ export const useDB = () => {
   // ======================
   // SAVE
   // ======================
-  const saveDB = (): void => {
-    console.log('🌍 DB Updated:', {
-      activeUsers: db.users.filter(u => u.status === 'active').length,
-      totalUsers: db.users.length,
-      events: db.events.length,
-      notifications: db.notifications?.length || 0
-    });
-  };
 
-  const addUser = (email: string, role: 'student' | 'admin'): User => {
-  const newUser: User = {
-    id: db.users.length > 0 ? Math.max(...db.users.map(u => u.id)) + 1 : 1,
-    email,
-    role,
-    status: 'active',
-    lastUpdated: new Date().toISOString().split('T')[0]
+
+const addUser = (email: string, role: 'student' | 'admin'): User => {
+    const newUser: User = {
+      id: db.users.length > 0 ? Math.max(...db.users.map(u => u.id)) + 1 : 1,
+      email,
+      role,
+      status: 'active',
+      lastUpdated: new Date().toISOString().split('T')[0]
+    };
+    db.users.push(newUser);
+    saveDB(); // This now triggers the localStorage update
+    return newUser;
   };
-  db.users.push(newUser);
-  saveDB();
-  return newUser;
-};
 
 const addEvent = (eventData: Omit<Event, 'id' | 'createdAt'>): Event => {
   const newEvent: Event = {
@@ -172,20 +191,15 @@ const registerForEvent = (userId: number, eventId: number) => {
   // RETURN ALL METHODS
   // ======================
   return {
-    // USERS
-    getUsers,
+getUsers,
     getAllUsers,
     findUser,
     toggleUserStatus,
     deleteInactiveUser,
-
-    // EVENTS
     getEvents,
     findEvent,
     updateEvent,
     deleteEvent,
-
-    // NOTIFICATIONS
     getNotifications,
     addNotification,
     markNotificationRead,
@@ -196,8 +210,6 @@ const registerForEvent = (userId: number, eventId: number) => {
     registerForEvent,
     unregisterFromEvent,
     getRegistrationCount,
-
-    // SAVE
     saveDB
   };
 };
