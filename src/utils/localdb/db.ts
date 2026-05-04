@@ -142,8 +142,12 @@ export const useDB = () => {
   const addNotification = (
     notification: Omit<Notification, 'id' | 'timestamp' | 'read'>
   ): Notification => {
+    const nextId =
+      db.notifications.length > 0
+        ? Math.max(...db.notifications.map((n) => n.id)) + 1
+        : 1;
     const newNotif: Notification = {
-      id: Date.now(),
+      id: nextId,
       timestamp: new Date().toISOString(),
       read: false,
       ...notification,
@@ -161,9 +165,34 @@ export const useDB = () => {
     return true;
   };
 
+  const markAllNotificationsReadForUser = (userId: number): void => {
+    db.notifications.forEach((n) => {
+      if (n.userId === userId) n.read = true;
+    });
+    saveDB();
+  };
+
+  const clearNotificationsForUser = (userId: number): void => {
+    db.notifications = db.notifications.filter((n) => n.userId !== userId);
+    saveDB();
+  };
+
   const clearNotifications = () => { 
     db.notifications = []; 
     saveDB(); 
+  };
+
+  const registerStudent = (
+    email: string,
+    password: string
+  ): { ok: true; user: User } | { ok: false; reason: 'duplicate' } => {
+    const trimmed = email.trim();
+    const normalized = trimmed.toLowerCase();
+    if (db.users.some((u) => u.email.toLowerCase() === normalized)) {
+      return { ok: false, reason: 'duplicate' };
+    }
+    const user = addUser(trimmed, password, 'student');
+    return { ok: true, user };
   };
 
   const getUserRegistrations = (userId: number): number[] => {
@@ -226,7 +255,10 @@ export const useDB = () => {
     getNotifications,
     addNotification,
     markNotificationRead,
+    markAllNotificationsReadForUser,
+    clearNotificationsForUser,
     clearNotifications,
+    registerStudent,
     getUserRegistrations,
     registerForEvent,
     unregisterFromEvent,

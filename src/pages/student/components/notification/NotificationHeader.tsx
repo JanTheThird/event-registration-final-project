@@ -1,8 +1,9 @@
+import { Button, ButtonGroup, Stack } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 
 export default function NotificationHeader({
   onMarkAllRead,
-  onClearAll
+  onClearAll,
 }: {
   onMarkAllRead: () => void;
   onClearAll: () => void;
@@ -10,23 +11,25 @@ export default function NotificationHeader({
   const navigate = useNavigate();
 
   return (
-    <>
-      <button onClick={() => navigate('/student')}>
-        ← Back to Dashboard
-      </button>
+    <Stack gap={3}>
+      <Button variant="outline-secondary" onClick={() => navigate('/student')}>
+        ← Back to dashboard
+      </Button>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h1>Notification Log</h1>
-
-        <div>
-          <button onClick={onMarkAllRead}>
+      <Stack
+        direction="horizontal"
+        className="justify-content-between align-items-center flex-wrap gap-2"
+      >
+        <h1 className="h3 mb-0">Notifications</h1>
+        <ButtonGroup>
+          <Button variant="outline-primary" size="sm" onClick={onMarkAllRead}>
             Mark all read
-          </button>
-          <button onClick={onClearAll} style={{ color: 'red' }}>
-            Clear All
-          </button>
-        </div>
-      </div>
-    </>
+          </Button>
+          <Button variant="outline-danger" size="sm" onClick={onClearAll}>
+            Clear all
+          </Button>
+        </ButtonGroup>
+      </Stack>
+    </Stack>
   );
 }

@@ -6,7 +6,7 @@ export default function EventsSection({
   children: React.ReactNode;
 }) {
   return (
-    <section style={{ marginTop: '40px' }}>
+    <section className="events-section">
       <h2>{title}</h2>
       <div className="events-grid">
         {children}

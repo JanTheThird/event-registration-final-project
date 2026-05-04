@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
+import { Button, Container, Stack } from 'react-bootstrap';
 import { useDB } from '../../utils/localdb/db';
+import { useAuth } from '../../utils/context/AuthContext';
 import type { Event, User } from '../../utils/types/Index';
 
 import AddUserForm from './components/AddUserForm';
@@ -17,6 +19,7 @@ interface EventAnalytics {
 
 export default function AdminPage() {
   const db = useDB();
+  const { logout } = useAuth();
 
   const [activeUsers, setActiveUsers] = useState<User[]>([]);
   const [inactiveUsers, setInactiveUsers] = useState<User[]>([]);
@@ -138,8 +141,16 @@ export default function AdminPage() {
   };
 
   return (
-    <div>
-      <h1>Admin Dashboard</h1>
+    <Container className="py-4">
+      <Stack
+        direction="horizontal"
+        className="justify-content-between align-items-center flex-wrap gap-3 mb-4"
+      >
+        <h1 className="h3 mb-0">Admin dashboard</h1>
+        <Button variant="outline-danger" size="sm" onClick={logout}>
+          Log out
+        </Button>
+      </Stack>
 
       <AddEventForm 
         onAdd={handleAddEvent}
@@ -186,6 +197,6 @@ export default function AdminPage() {
         analytics={analytics}
         onClose={() => setShowAnalytics(null)}
       />
-    </div>
+    </Container>
   );
 }

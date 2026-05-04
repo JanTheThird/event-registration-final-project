@@ -15,10 +15,11 @@ export default function RegisteredEventCard({
   onUnregister: () => void;
   onNotify: (days: number) => void;
 }) {
+  const urgent = daysUntil <= 3;
+
   return (
     <div
-      className="card-base card-registered"
-      style={{ borderColor: daysUntil <= 3 ? '#ff4d4f' : '#1890ff' }}
+      className={`card-base card-registered${urgent ? ' card-urgent' : ''}`}
     >
       <h3>{event.name}</h3>
       <p>{event.date} ({daysUntil} days left)</p>

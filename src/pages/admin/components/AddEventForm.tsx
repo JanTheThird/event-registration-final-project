@@ -151,7 +151,7 @@ export default function AddEventForm({
             {isEditing ? 'Update Event' : 'Create Event'}
           </button>
           {isEditing && onCancel && (
-            <button type="button" onClick={handleCancel} style={{ background: '#6c757d' }}>
+            <button type="button" onClick={handleCancel} className="btn-unregister">
               Cancel
             </button>
           )}

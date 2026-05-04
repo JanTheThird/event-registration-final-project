@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { Container, Stack, Button } from 'react-bootstrap';
 import { useDB } from '../../utils/localdb/db';
 import type { Event } from '../../utils/types/Index';
 
@@ -10,11 +12,12 @@ import { useAuth } from '../../utils/context/AuthContext';
 
 export default function StudentPage() {
   const db = useDB();
-  const { userId, logout } = useAuth();
+  const { userId, logout, isLoading: authLoading } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const [unread, setUnread] = useState(0);
   const [openDropdown, setOpenDropdown] = useState<number | null>(null);
-  const [loading, setLoading] = useState(true);
 
   const today = new Date().toISOString().split('T')[0];
 
@@ -47,27 +50,6 @@ export default function StudentPage() {
   // ---------------------------
   // EFFECTS
   // ---------------------------
-  useEffect(() => {
-    refreshUnread();
-  }, [userId]);
-
-  useEffect(() => {
-    if (!userId) {
-      setLoading(false);
-      return;
-    }
-    setLoading(false);
-  }, [userId]);
-
-  useEffect(() => {
-    if (userIdNum) {
-      refreshUnread();
-    }
-  }, [events.length, userId]);
-
-  // ---------------------------
-  // FIXED: refreshUnread
-  // ---------------------------
   const refreshUnread = () => {
     if (!userIdNum) {
       setUnread(0);
@@ -77,6 +59,10 @@ export default function StudentPage() {
     const notifs = db.getNotifications().filter(n => n.userId === userIdNum); // ✅ Fixed!
     setUnread(notifs.filter(n => !n.read).length);
   };
+
+  useEffect(() => {
+    refreshUnread();
+  }, [userId, location.pathname]);
 
   // ---------------------------
   // HELPERS
@@ -142,26 +128,40 @@ export default function StudentPage() {
   // ---------------------------
   // RENDER
   // ---------------------------
-  if (loading) {
-    return <div className="student-container">Loading...</div>;
+  if (authLoading) {
+    return (
+      <Container className="py-5 text-center student-container">
+        <div className="loading-spinner" aria-hidden />
+        <p className="mt-3 text-muted mb-0">Loading session…</p>
+      </Container>
+    );
   }
 
   if (!userIdNum) {
     return (
-      <div className="student-container">
-        <h1>Please log in</h1>
-        <button onClick={() => window.location.href = '/'}>Go to Login</button>
-      </div>
+      <Container className="py-5 student-container">
+        <h1 className="h3">Please sign in</h1>
+        <Button variant="primary" onClick={() => navigate('/')}>
+          Go to sign in
+        </Button>
+      </Container>
     );
   }
 
   return (
-    <div className="student-container">
-      <div className="page-header">
-        <NotificationBadge unread={unread} />
-        <h1>Student Dashboard</h1>
-        <button onClick={logout} className="logout-btn">Logout</button>
-      </div>
+    <Container className="py-4 student-container">
+      <Stack
+        direction="horizontal"
+        className="page-header flex-wrap justify-content-between align-items-center gap-3 mb-4"
+      >
+        <div className="d-flex align-items-center gap-3 flex-wrap">
+          <NotificationBadge unread={unread} />
+          <h1 className="h3 mb-0">Student dashboard</h1>
+        </div>
+        <Button variant="outline-danger" size="sm" onClick={logout}>
+          Log out
+        </Button>
+      </Stack>
 
       <EventsSection title="My Registered Events">
         {registeredEvents.length === 0 ? (
@@ -196,6 +196,6 @@ export default function StudentPage() {
           ))
         )}
       </EventsSection>
-    </div>
+    </Container>
   );
 }

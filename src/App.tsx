@@ -64,13 +64,15 @@ function AppContent() {
             </ProtectedRoute>
           } 
         />
-        <Route 
-          path="/notifications" 
+        <Route
+          path="/notifications"
           element={
             <ProtectedRoute>
-              <NotificationLogPage />
+              <RoleProtectedRoute allowedRole="student">
+                <NotificationLogPage />
+              </RoleProtectedRoute>
             </ProtectedRoute>
-          } 
+          }
         />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

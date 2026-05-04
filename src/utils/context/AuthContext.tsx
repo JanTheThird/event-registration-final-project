@@ -2,6 +2,11 @@ import { createContext, useContext, useState, useEffect, type ReactNode } from '
 import { useDB } from '../localdb/db';
 import { useNavigate } from 'react-router-dom';
 import type { User } from '../types/Index';
+import {
+  readPersistedUserIdRaw,
+  setCurrentUserId,
+  clearPersistedAuth,
+} from '../auth';
 
 interface AuthContextType {
   userId: number | null;
@@ -20,16 +25,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const savedUserId = localStorage.getItem('currentUserId');
+    const savedUserId = readPersistedUserIdRaw();
     if (savedUserId) {
-      const parsedId = parseInt(savedUserId);
+      const parsedId = parseInt(savedUserId, 10);
       const user = db.findUser(parsedId);
       if (user && user.status === 'active') {
         setUserId(parsedId);
-        // Do not redirect here — user should see the landing page first at "/".
-        // They can log in again or use "Continue" on the landing page if a session exists.
+        setCurrentUserId(parsedId);
       } else {
-        localStorage.removeItem('currentUserId');
+        clearPersistedAuth();
       }
     }
     setIsLoading(false);
@@ -39,13 +43,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const user = db.findUser(id);
     if (user) {
       setUserId(id);
-      localStorage.setItem('currentUserId', id.toString());
+      setCurrentUserId(id);
     }
   };
 
   const logout = () => {
     setUserId(null);
-    localStorage.removeItem('currentUserId');
+    clearPersistedAuth();
     navigate('/', { replace: true });
   };
 
