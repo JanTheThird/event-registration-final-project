@@ -9,9 +9,7 @@ let db: Database & { notifications: Notification[] } = {
 
 export const useDB = () => {
 
-  // ======================
-  // USERS
-  // ======================
+  
   const getUsers = (): User[] => db.users.filter(u => u.status === 'active');
 
   const getAllUsers = (): User[] => db.users;
@@ -124,6 +122,30 @@ export const useDB = () => {
     });
   };
 
+  const addUser = (email: string, role: 'student' | 'admin'): User => {
+  const newUser: User = {
+    id: db.users.length > 0 ? Math.max(...db.users.map(u => u.id)) + 1 : 1,
+    email,
+    role,
+    status: 'active',
+    lastUpdated: new Date().toISOString().split('T')[0]
+  };
+  db.users.push(newUser);
+  saveDB();
+  return newUser;
+};
+
+const addEvent = (eventData: Omit<Event, 'id' | 'createdAt'>): Event => {
+  const newEvent: Event = {
+    id: db.events.length > 0 ? Math.max(...db.events.map(e => e.id)) + 1 : 1,
+    ...eventData,
+    createdAt: new Date().toISOString().split('T')[0]
+  };
+  db.events.push(newEvent);
+  saveDB();
+  return newEvent;
+};
+
   // ======================
   // RETURN ALL METHODS
   // ======================
@@ -147,6 +169,8 @@ export const useDB = () => {
     markNotificationRead,
     clearNotifications,
     clearReadNotifications,
+    addUser,
+    addEvent,
 
     // SAVE
     saveDB

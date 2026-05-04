@@ -19,10 +19,11 @@ interface EditingEvent {
 
 interface EventAnalytics {
   totalRegistered: number;
-  quota: number;
+  quota: number;  
   isSuccess: boolean;
   status: 'success' | 'failed' | 'upcoming';
 }
+
 
 export default function AdminPage() {
   const db = useDB();
@@ -32,6 +33,8 @@ export default function AdminPage() {
   const [editingEvents, setEditingEvents] = useState<EditingEvent[]>([]);
   const [showAnalytics, setShowAnalytics] = useState<Event | null>(null);
   const [analytics, setAnalytics] = useState<EventAnalytics | null>(null);
+  const [newUserEmail, setNewUserEmail] = useState('');
+  const [newUserRole, setNewUserRole] = useState<'student' | 'admin'>('student');
 
   useEffect(() => {
     refreshData();
@@ -94,6 +97,34 @@ export default function AdminPage() {
       db.deleteInactiveUser(id);
       refreshUsers();
     }
+  };
+
+  const [newEventData, setNewEventData] = useState<EventFormData>({
+  name: '',
+  date: '',
+  quota: 0,
+  location: '',
+  description: '',
+  });
+
+  const handleAddUser = (e: React.FormEvent) => {
+  e.preventDefault();
+  if (!newUserEmail) return alert('Email is required');
+  db.addUser(newUserEmail, newUserRole);
+  setNewUserEmail(''); // Reset form
+  refreshUsers();
+  };
+
+  const handleAddEvent = (e: React.FormEvent) => {
+  e.preventDefault();
+  const errors = validateForm(newEventData);
+  if (errors.length > 0) {
+    alert(errors.join('\n'));
+    return;
+  }
+  db.addEvent(newEventData);
+  setNewEventData({ name: '', date: '', quota: 0, location: '', description: '' }); // Reset form
+  refreshEvents();
   };
 
   const startEdit = (event: Event) => {
@@ -200,6 +231,65 @@ export default function AdminPage() {
   return (
     <div>
       <h1>Admin Dashboard</h1>
+
+      {/* CREATE USER SECTION */}
+    <section>
+      <h2>Add New User</h2>
+      <form onSubmit={handleAddUser}>
+        <input 
+          type="email" 
+          placeholder="User Email" 
+          value={newUserEmail}
+          onChange={(e) => setNewUserEmail(e.target.value)}
+        />
+        <select 
+          value={newUserRole} 
+          onChange={(e) => setNewUserRole(e.target.value as 'student' | 'admin')}
+        >
+          <option value="student">Student</option>
+          <option value="admin">Admin</option>
+        </select>
+        <button type="submit">Create User</button>
+      </form>
+    </section>
+
+    <hr />
+
+    {/* CREATE EVENT SECTION */}
+    <section>
+      <h2>Add New Event</h2>
+      <form onSubmit={handleAddEvent}>
+        <input 
+          placeholder="Event Name" 
+          value={newEventData.name}
+          onChange={(e) => setNewEventData({...newEventData, name: e.target.value})}
+        /><br/>
+        <input 
+          type="date" 
+          value={newEventData.date}
+          onChange={(e) => setNewEventData({...newEventData, date: e.target.value})}
+        /><br/>
+        <input 
+          type="number" 
+          placeholder="Quota" 
+          value={newEventData.quota}
+          onChange={(e) => setNewEventData({...newEventData, quota: parseInt(e.target.value) || 0})}
+        /><br/>
+        <input 
+          placeholder="Location" 
+          value={newEventData.location}
+          onChange={(e) => setNewEventData({...newEventData, location: e.target.value})}
+        /><br/>
+        <textarea 
+          placeholder="Description" 
+          value={newEventData.description}
+          onChange={(e) => setNewEventData({...newEventData, description: e.target.value})}
+        /><br/>
+        <button type="submit">Create Event</button>
+      </form>
+    </section>
+
+    <hr />
       
       {/* User Management Tables */}
       <div>
