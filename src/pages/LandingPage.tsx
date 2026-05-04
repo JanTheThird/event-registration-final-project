@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDB } from '../utils/localdb/db';
+import { useAuth } from '../utils/context/AuthContext';
 
 function LandingPage() {
   const navigate = useNavigate();
   const db = useDB();
+  const { login } = useAuth();
   const allUsers = db.getAllUsers(); // Get Ana, Jack, etc. from your JSON/LocalStorage
 
   const [selectedUserId, setSelectedUserId] = useState<string>('');
@@ -18,8 +20,7 @@ function LandingPage() {
       return;
     }
 
-    // Save the "Current User" so the app knows who is browsing
-    localStorage.setItem('current_user_id', user.id.toString());
+    login(user.id);
 
     if (user.role === 'admin') {
       navigate('/admin');

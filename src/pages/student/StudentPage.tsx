@@ -23,7 +23,7 @@ export default function StudentPage() {
   // ---------------------------
   const getUserIdNum = (): number | null => {
     if (!userId) return null;
-    return parseInt(userId);
+    return userId;
   };
 
   // ---------------------------

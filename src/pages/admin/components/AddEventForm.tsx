@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
 import type { Event } from '../../../utils/types/Index';
 
 interface EventFormData {
@@ -23,58 +24,57 @@ export default function AddEventForm({
   onUpdate, 
   onCancel 
 }: AddEventFormProps) {
-  const [form, setForm] = useState<EventFormData>({
+  const defaultValues: EventFormData = {
     name: '',
     date: new Date().toISOString().split('T')[0], // ✅ Default today
     quota: 10, // ✅ Default quota
     location: '',
     description: ''
+  };
+  const [form, setForm] = useState<EventFormData>(defaultValues);
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    reset,
+    formState: { errors },
+  } = useForm<EventFormData>({
+    defaultValues,
   });
 
 
   // Populate form when editing
   useEffect(() => {
   if (editingEvent) {
-    setForm({
+    const eventForm: EventFormData = {
       id: editingEvent.id,
       name: editingEvent.name,
       date: editingEvent.date,
       quota: editingEvent.quota,
       location: editingEvent.location || '',
       description: editingEvent.description || ''
-    });
+    };
+    setForm(eventForm);
+    reset(eventForm);
   } else {
-    setForm({ 
-      id: undefined,
-      name: '',
-      date: new Date().toISOString().split('T')[0],
-      quota: 10,
-      location: '',
-      description: ''
-    });
+    setForm(defaultValues);
+    reset(defaultValues);
   }
-}, [editingEvent]);
+}, [editingEvent, reset]);
 
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const onSubmit = (data: EventFormData) => {
+    const payload = { ...form, ...data };
     if (editingEvent && onUpdate) {
-      onUpdate(form);
+      onUpdate(payload);
     } else {
-      onAdd(form);
+      onAdd(payload);
     }
   };
 
   const handleCancel = () => {
-    setForm({ 
-      id: undefined,
-      name: '', 
-      date: '', 
-      quota: 0, 
-      location: '', 
-      description: '' 
-    });
+    setForm(defaultValues);
+    reset(defaultValues);
     onCancel?.();
   };
 
@@ -83,40 +83,69 @@ export default function AddEventForm({
   return (
     <section>
       <h2>{isEditing ? 'Edit Event' : 'Add New Event'}</h2>
-      <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '10px', maxWidth: '500px' }}>
+      <form onSubmit={handleSubmit(onSubmit)} style={{ display: 'grid', gap: '10px', maxWidth: '500px' }}>
         <input
           placeholder="Event Name"
           value={form.name}
-          onChange={(e) => setForm({...form, name: e.target.value})}
+          {...register('name', { required: 'Event name is required' })}
+          onChange={(e) => {
+            setValue('name', e.target.value, { shouldValidate: true });
+            setForm({ ...form, name: e.target.value });
+          }}
           required
         />
+        {errors.name && <span className="error-message">{errors.name.message}</span>}
         <input
           type="date"
           value={form.date}
-          onChange={(e) => setForm({...form, date: e.target.value})}
+          {...register('date', { required: 'Date is required' })}
+          onChange={(e) => {
+            setValue('date', e.target.value, { shouldValidate: true });
+            setForm({ ...form, date: e.target.value });
+          }}
           required
         />
+        {errors.date && <span className="error-message">{errors.date.message}</span>}
         <input
           type="number"
           placeholder="Quota"
           value={form.quota}
-          onChange={(e) => setForm({...form, quota: Number(e.target.value) || 0})}
+          {...register('quota', {
+            min: { value: 0, message: 'Quota must be 0 or more' },
+            valueAsNumber: true,
+          })}
+          onChange={(e) => {
+            const quotaValue = Number(e.target.value) || 0;
+            setValue('quota', quotaValue, { shouldValidate: true });
+            setForm({ ...form, quota: quotaValue });
+          }}
           min="0"
           required
         />
+        {errors.quota && <span className="error-message">{errors.quota.message}</span>}
         <input
           placeholder="Location"
           value={form.location}
-          onChange={(e) => setForm({...form, location: e.target.value})}
+          {...register('location', { required: 'Location is required' })}
+          onChange={(e) => {
+            setValue('location', e.target.value, { shouldValidate: true });
+            setForm({ ...form, location: e.target.value });
+          }}
           required
         />
+        {errors.location && <span className="error-message">{errors.location.message}</span>}
         <textarea
           placeholder="Description"
           value={form.description}
-          onChange={(e) => setForm({...form, description: e.target.value})}
+          {...register('description', { required: 'Description is required' })}
+          onChange={(e) => {
+            setValue('description', e.target.value, { shouldValidate: true });
+            setForm({ ...form, description: e.target.value });
+          }}
           rows={3}
           required
         />
+        {errors.description && <span className="error-message">{errors.description.message}</span>}
         <div style={{ display: 'flex', gap: '10px' }}>
           <button type="submit">
             {isEditing ? 'Update Event' : 'Create Event'}

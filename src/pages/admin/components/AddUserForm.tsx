@@ -1,32 +1,48 @@
-import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+
+interface AddUserFormValues {
+  email: string;
+  role: 'student' | 'admin';
+}
 
 export default function AddUserForm({ onAdd }: {
   onAdd: (email: string, role: 'student' | 'admin') => void;
 }) {
-  const [email, setEmail] = useState('');
-  const [role, setRole] = useState<'student' | 'admin'>('student');
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<AddUserFormValues>({
+    defaultValues: {
+      email: '',
+      role: 'student',
+    },
+  });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email) return alert('Email required');
-
-    onAdd(email, role);
-    setEmail('');
+  const onSubmit = (data: AddUserFormValues) => {
+    onAdd(data.email, data.role);
+    reset({ email: '', role: data.role });
   };
 
   return (
     <section>
       <h2>Add New User</h2>
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit(onSubmit)}>
         <input
           type="email"
           placeholder="User Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          {...register('email', {
+            required: 'Email is required',
+            pattern: {
+              value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+              message: 'Enter a valid email address',
+            },
+          })}
         />
+        {errors.email && <p className="error-message">{errors.email.message}</p>}
         <select
-          value={role}
-          onChange={(e) => setRole(e.target.value as any)}
+          {...register('role')}
         >
           <option value="student">Student</option>
           <option value="admin">Admin</option>
