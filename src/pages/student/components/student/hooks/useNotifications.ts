@@ -6,7 +6,7 @@ export default function useNotifications(userId: number | null) {
   const [unreadCount, setUnreadCount] = useState(0);
 
   const refreshUnread = useCallback(() => {
-    if (!userId) {
+    if (!userId) {  
       setUnreadCount(0);
       return;
     }
